@@ -18,12 +18,12 @@ interface WalletModalProps {
 }
 
 const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
-  const { isConnected, address, balance, connectWallet, disconnectWallet, isConnecting } = useWallet();
+  const { isConnected, address, balance, connectWallet, disconnectWallet, isConnecting, explorerUrl } = useWallet();
   const { toast } = useToast();
 
   const handleCopyAddress = () => {
     if (address) {
-      navigator.clipboard.writeText(address.replace('...', ''));
+      navigator.clipboard.writeText(address);
       toast({
         title: "Address copied",
         description: "Wallet address copied to clipboard",
@@ -34,6 +34,12 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
   const handleDisconnect = () => {
     disconnectWallet();
     onClose();
+  };
+
+  // Format address for display (0x1234...5678)
+  const formatAddress = (address: string) => {
+    if (!address) return '';
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
   return (
@@ -89,7 +95,7 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
                   className="flex-1"
                   asChild
                 >
-                  <a href="https://etherscan.io" target="_blank" rel="noopener noreferrer">
+                  <a href={`${explorerUrl}/address/${address}`} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Explorer
                   </a>
@@ -105,11 +111,11 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
                   disabled={isConnecting}
                 >
                   <img 
-                    src="https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/f6d76/eth-diamond-black.png" 
-                    alt="Ethereum" 
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/800px-MetaMask_Fox.svg.png" 
+                    alt="MetaMask" 
                     className="h-12 w-12 object-contain"
                   />
-                  <span>Ethereum</span>
+                  <span>MetaMask</span>
                 </Button>
                 <Button 
                   className="p-6 flex-col h-auto space-y-2 bg-muted hover:bg-muted/80 text-foreground border border-border"
@@ -129,11 +135,11 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
                   disabled={isConnecting}
                 >
                   <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/800px-MetaMask_Fox.svg.png" 
-                    alt="MetaMask" 
+                    src="https://assets-global.website-files.com/618e9316785b3582a5178502/61f947b901275bfcbfc89673_walletconnect-logo.svg" 
+                    alt="WalletConnect" 
                     className="h-12 w-12 object-contain"
                   />
-                  <span>MetaMask</span>
+                  <span>WalletConnect</span>
                 </Button>
                 <Button 
                   className="p-6 flex-col h-auto space-y-2 bg-muted hover:bg-muted/80 text-foreground border border-border"
@@ -141,11 +147,11 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
                   disabled={isConnecting}
                 >
                   <img 
-                    src="https://assets-global.website-files.com/618e9316785b3582a5178502/61f947b901275bfcbfc89673_walletconnect-logo.svg" 
-                    alt="WalletConnect" 
+                    src="https://www.coinbase.com/img/favicon/apple-icon-180x180.png" 
+                    alt="Coinbase" 
                     className="h-12 w-12 object-contain"
                   />
-                  <span>WalletConnect</span>
+                  <span>Coinbase</span>
                 </Button>
               </div>
               

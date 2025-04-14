@@ -7,9 +7,10 @@ import { Search, Wallet, Menu, X } from 'lucide-react';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
+  onOpenWalletModal?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSearch }) => {
+const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
   const { isConnected, address, balance, connectWallet, disconnectWallet, isConnecting } = useWallet();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,6 +26,24 @@ const Header: React.FC<HeaderProps> = ({ onSearch }) => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  // Format address for display (0x1234...5678)
+  const formatAddress = (address: string) => {
+    if (!address) return '';
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  };
+
+  const handleWalletClick = () => {
+    if (isConnected) {
+      // If wallet is connected, just open the modal
+      if (onOpenWalletModal) {
+        onOpenWalletModal();
+      }
+    } else {
+      // If wallet is not connected, connect it
+      connectWallet();
+    }
   };
 
   return (
@@ -57,15 +76,15 @@ const Header: React.FC<HeaderProps> = ({ onSearch }) => {
               <Button 
                 variant="ghost" 
                 className="flex items-center gap-2"
-                onClick={disconnectWallet}
+                onClick={handleWalletClick}
               >
-                <span className="text-sm font-medium">{address}</span>
+                <span className="text-sm font-medium">{formatAddress(address!)}</span>
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
               </Button>
             </div>
           ) : (
             <Button 
-              onClick={connectWallet} 
+              onClick={handleWalletClick} 
               className="base-gradient text-white"
               disabled={isConnecting}
             >
@@ -105,15 +124,15 @@ const Header: React.FC<HeaderProps> = ({ onSearch }) => {
               <Button 
                 variant="ghost" 
                 className="flex items-center justify-center gap-2"
-                onClick={disconnectWallet}
+                onClick={handleWalletClick}
               >
-                <span className="text-sm font-medium">{address}</span>
+                <span className="text-sm font-medium">{formatAddress(address!)}</span>
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
               </Button>
             </div>
           ) : (
             <Button 
-              onClick={connectWallet} 
+              onClick={handleWalletClick} 
               className="base-gradient text-white w-full"
               disabled={isConnecting}
             >

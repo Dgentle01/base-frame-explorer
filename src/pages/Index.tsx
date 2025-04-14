@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -12,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Filter, ArrowUpDown } from 'lucide-react';
 import { NFT, NFTView, NFTFilterOptions } from '@/types/nft';
 import { nftService } from '@/services/nftService';
-import { WalletProvider } from '@/context/WalletContext';
 
 const Index = () => {
   const [trendingNFTs, setTrendingNFTs] = useState<NFT[]>([]);
@@ -33,7 +31,6 @@ const Index = () => {
   const [isNFTDetailOpen, setIsNFTDetailOpen] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
-  // Fetch initial data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -130,161 +127,154 @@ const Index = () => {
   const isSearching = searchQuery.trim().length > 0;
 
   return (
-    <WalletProvider>
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header onSearch={handleSearch} />
-        
-        <main className="flex-1 container py-6">
-          {/* Hero Section */}
-          {!isSearching && (
-            <div className="rounded-xl overflow-hidden mb-10 relative">
-              <div className="absolute inset-0 base-gradient opacity-90"></div>
-              <div className="relative z-10 p-8 md:p-12 flex flex-col items-center md:items-start text-white">
-                <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center md:text-left">
-                  Discover, Collect & Mint <br /> NFTs on Base Network
-                </h1>
-                <p className="text-lg mb-6 max-w-lg text-center md:text-left">
-                  Explore the latest trending NFTs with real-time market data and connect your wallet to start your collection.
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header 
+        onSearch={handleSearch}
+        onOpenWalletModal={toggleWalletModal}
+      />
+      
+      <main className="flex-1 container py-6">
+        {!isSearching && (
+          <div className="rounded-xl overflow-hidden mb-10 relative">
+            <div className="absolute inset-0 base-gradient opacity-90"></div>
+            <div className="relative z-10 p-8 md:p-12 flex flex-col items-center md:items-start text-white">
+              <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center md:text-left">
+                Discover, Collect & Mint <br /> NFTs on Base Network
+              </h1>
+              <p className="text-lg mb-6 max-w-lg text-center md:text-left">
+                Explore the latest trending NFTs with real-time market data and connect your wallet to start your collection.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  size="lg" 
+                  className="bg-white text-primary hover:bg-white/90"
+                  onClick={toggleWalletModal}
+                >
+                  Connect Wallet
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-white border-white hover:bg-white/10"
+                >
+                  Explore Collections
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
+            <div className="w-full md:w-auto">
+              <h2 className="text-2xl font-bold mb-2">
+                {isSearching ? 'Search Results' : 'Explore NFTs'}
+              </h2>
+              {isSearching && (
+                <p className="text-muted-foreground">
+                  Showing results for "{searchQuery}"
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button 
-                    size="lg" 
-                    className="bg-white text-primary hover:bg-white/90"
-                    onClick={toggleWalletModal}
-                  >
-                    Connect Wallet
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="text-white border-white hover:bg-white/10"
-                  >
-                    Explore Collections
-                  </Button>
-                </div>
+              )}
+            </div>
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+              <SearchBar onSearch={handleSearch} />
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={toggleFilters}
+                  className={showFilters ? 'bg-muted' : ''}
+                >
+                  <Filter className="h-4 w-4" />
+                </Button>
+                <ViewToggle view={view} onViewChange={setView} />
               </div>
             </div>
-          )}
-
-          {/* Search and Filters Bar */}
-          <div className="mb-8">
-            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
-              <div className="w-full md:w-auto">
-                <h2 className="text-2xl font-bold mb-2">
-                  {isSearching ? 'Search Results' : 'Explore NFTs'}
-                </h2>
-                {isSearching && (
-                  <p className="text-muted-foreground">
-                    Showing results for "{searchQuery}"
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                <SearchBar onSearch={handleSearch} />
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={toggleFilters}
-                    className={showFilters ? 'bg-muted' : ''}
-                  >
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                  <ViewToggle view={view} onViewChange={setView} />
-                </div>
-              </div>
-            </div>
-
-            {/* Filters Section */}
-            {showFilters && (
-              <div className="mt-4 mb-6">
-                <SearchFilters 
-                  onApplyFilters={handleApplyFilters} 
-                  onClearFilters={handleClearFilters}
-                />
-              </div>
-            )}
           </div>
 
-          {/* Search Results */}
-          {isSearching && (
+          {showFilters && (
+            <div className="mt-4 mb-6">
+              <SearchFilters 
+                onApplyFilters={handleApplyFilters} 
+                onClearFilters={handleClearFilters}
+              />
+            </div>
+          )}
+        </div>
+
+        {isSearching && (
+          <NFTGridSection
+            title=""
+            nfts={searchResults}
+            loading={loading.search}
+            onViewDetails={handleViewDetails}
+            view={view}
+          />
+        )}
+
+        {!isSearching && (
+          <>
             <NFTGridSection
-              title=""
-              nfts={searchResults}
-              loading={loading.search}
+              title="Trending NFTs"
+              description="The most popular NFTs in the last 24 hours"
+              nfts={trendingNFTs}
+              loading={loading.trending}
+              showViewAll
+              onViewAll={() => console.log('View all trending')}
               onViewDetails={handleViewDetails}
               view={view}
             />
-          )}
 
-          {/* NFT Sections (only shown when not searching) */}
-          {!isSearching && (
-            <>
-              <NFTGridSection
-                title="Trending NFTs"
-                description="The most popular NFTs in the last 24 hours"
-                nfts={trendingNFTs}
-                loading={loading.trending}
-                showViewAll
-                onViewAll={() => console.log('View all trending')}
-                onViewDetails={handleViewDetails}
-                view={view}
-              />
+            <NFTGridSection
+              title="Newly Minted"
+              description="Fresh NFTs hot off the blockchain"
+              nfts={newlyMintedNFTs}
+              loading={loading.newlyMinted}
+              showViewAll
+              onViewAll={() => console.log('View all newly minted')}
+              onViewDetails={handleViewDetails}
+              view={view}
+            />
 
-              <NFTGridSection
-                title="Newly Minted"
-                description="Fresh NFTs hot off the blockchain"
-                nfts={newlyMintedNFTs}
-                loading={loading.newlyMinted}
-                showViewAll
-                onViewAll={() => console.log('View all newly minted')}
-                onViewDetails={handleViewDetails}
-                view={view}
-              />
+            <NFTGridSection
+              title="Highest Market Cap"
+              description="NFTs with the highest market capitalization"
+              nfts={highestMarketCapNFTs}
+              loading={loading.highestMarketCap}
+              showViewAll
+              onViewAll={() => console.log('View all highest market cap')}
+              onViewDetails={handleViewDetails}
+              view={view}
+            />
+          </>
+        )}
 
-              <NFTGridSection
-                title="Highest Market Cap"
-                description="NFTs with the highest market capitalization"
-                nfts={highestMarketCapNFTs}
-                loading={loading.highestMarketCap}
-                showViewAll
-                onViewAll={() => console.log('View all highest market cap')}
-                onViewDetails={handleViewDetails}
-                view={view}
-              />
-            </>
-          )}
+        {isSearching && searchResults.length === 0 && !loading.search && (
+          <div className="py-16 text-center">
+            <h3 className="text-xl font-medium mb-2">No NFTs found</h3>
+            <p className="text-muted-foreground mb-6">
+              Try adjusting your search terms or filters
+            </p>
+            <Button onClick={() => setSearchQuery('')}>
+              Clear Search
+            </Button>
+          </div>
+        )}
+      </main>
 
-          {/* Empty State */}
-          {isSearching && searchResults.length === 0 && !loading.search && (
-            <div className="py-16 text-center">
-              <h3 className="text-xl font-medium mb-2">No NFTs found</h3>
-              <p className="text-muted-foreground mb-6">
-                Try adjusting your search terms or filters
-              </p>
-              <Button onClick={() => setSearchQuery('')}>
-                Clear Search
-              </Button>
-            </div>
-          )}
-        </main>
+      <Footer />
 
-        <Footer />
+      <NFTDetail
+        nft={selectedNFT}
+        isOpen={isNFTDetailOpen}
+        onClose={() => setIsNFTDetailOpen(false)}
+      />
 
-        {/* NFT Detail Modal */}
-        <NFTDetail
-          nft={selectedNFT}
-          isOpen={isNFTDetailOpen}
-          onClose={() => setIsNFTDetailOpen(false)}
-        />
-
-        {/* Wallet Modal */}
-        <WalletModal
-          isOpen={isWalletModalOpen}
-          onClose={() => setIsWalletModalOpen(false)}
-        />
-      </div>
-    </WalletProvider>
+      <WalletModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+      />
+    </div>
   );
 };
 
