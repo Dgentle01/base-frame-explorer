@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Base network and crypto-inspired colors
+				base: {
+					blue: '#0052FF',
+					purple: '#8247E5',
+					dark: '#0F172A',
+					light: '#E0F2FE',
+				},
+				nft: {
+					art: '#FF7D54',
+					music: '#54B4FF',
+					photography: '#54FFB3',
+					collectible: '#FFD154',
 				}
 			},
 			borderRadius: {
@@ -84,11 +98,27 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' }
+				},
+				'glow': {
+					'0%, 100%': { 
+						boxShadow: '0 0 5px rgba(0, 82, 255, 0.2)',
+						transform: 'scale(1)' 
+					},
+					'50%': { 
+						boxShadow: '0 0 20px rgba(0, 82, 255, 0.4)',
+						transform: 'scale(1.01)' 
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'float': 'float 6s ease-in-out infinite',
+				'glow': 'glow 3s ease-in-out infinite'
 			}
 		}
 	},
