@@ -2,7 +2,26 @@
 
 ## Project info
 
+https://basenftexplorer.vercel.app/
 
+:
+
+# 🛠️ What You Are Building <br>
+We are building a Mini Farcaster Frame — a compact, powerful, and shareable web app embedded within the Farcaster ecosystem — that:
+
+## 🎯 Key Features:
+Displays trending Zora NFTs
+
+Lists newly minted NFTs
+Ranks NFTs by market cap and trading volume
+Provides live NFT search by name or artist, with filters
+Enables direct minting of NFTs on the Ethereum Base network
+Includes wallet connection via RainbowKit/Web3Modal
+Uses animated, interactive NFT cards
+Allows list/grid view toggling
+Integrates seamlessly with Farcaster, letting people share and engage with NFTs natively inside the app via Frames
+
+It combines Web3 discovery, market insights, minting actions, and social sharing all in one sleek, optimized mini app.
 
 To edit this File
 
