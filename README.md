@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/23965c61-8c3a-4c49-ad2b-8d406bc0ebd1
+
 
 To edit this File
 
