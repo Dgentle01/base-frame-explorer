@@ -38,7 +38,7 @@ const Footer: React.FC = () => {
 
           <div className="flex gap-2">
             <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" asChild>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://twitter.com/D_Gentle01" target="_blank" rel="noopener noreferrer">
                 <Twitter size={16} />
               </a>
             </Button>
