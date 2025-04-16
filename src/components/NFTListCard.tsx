@@ -1,12 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { NFT } from '@/types/nft';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, ArrowUpRight } from 'lucide-react';
+import { Eye, ArrowUpRight, CheckCircle } from 'lucide-react';
 import { useWallet } from '@/context/WalletContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface NFTListCardProps {
   nft: NFT;
@@ -15,7 +15,52 @@ interface NFTListCardProps {
 
 const NFTListCard: React.FC<NFTListCardProps> = ({ nft, onViewDetails }) => {
   const { isConnected } = useWallet();
-  const { toast } = useToast();
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [isPurchased, setIsPurchased] = useState(false);
+
+  const handleBuyNFT = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!isConnected) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to purchase NFTs.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsPurchasing(true);
+      
+      // Simulate transaction processing
+      toast({
+        title: "Processing purchase",
+        description: `Initiating purchase of ${nft.name}...`,
+      });
+      
+      // Simulate blockchain transaction delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simulate successful purchase
+      setIsPurchased(true);
+      setIsPurchasing(false);
+      
+      toast({
+        title: "Purchase successful!",
+        description: `You've successfully purchased ${nft.name}. It will appear in your wallet shortly.`,
+      });
+    } catch (error) {
+      console.error("Purchase error:", error);
+      setIsPurchasing(false);
+      
+      toast({
+        title: "Purchase failed",
+        description: "There was an error processing your purchase. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -101,28 +146,39 @@ const NFTListCard: React.FC<NFTListCardProps> = ({ nft, onViewDetails }) => {
                   <Eye className="h-3 w-3 mr-1" />
                   Details
                 </Button>
-                <Button 
-                  size="sm"
-                  className="base-gradient text-white"
-                  disabled={!isConnected}
-                  onClick={() => {
-                    if (!isConnected) {
-                      toast({
-                        title: "Wallet not connected",
-                        description: "Please connect your wallet to purchase NFTs.",
-                        variant: "destructive",
-                      });
-                    } else {
-                      toast({
-                        title: "Purchase initiated",
-                        description: `Starting purchase process for ${nft.name}.`,
-                      });
-                    }
-                  }}
-                >
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
-                  Buy
-                </Button>
+                
+                {isPurchased ? (
+                  <Button 
+                    size="sm"
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                    disabled
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Owned
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm"
+                    className="base-gradient text-white"
+                    disabled={!isConnected || isPurchasing}
+                    onClick={handleBuyNFT}
+                  >
+                    {isPurchasing ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing
+                      </span>
+                    ) : (
+                      <>
+                        <ArrowUpRight className="h-3 w-3 mr-1" />
+                        Buy
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           </div>

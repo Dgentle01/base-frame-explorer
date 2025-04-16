@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { NFT } from '@/types/nft';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,10 +10,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Clock, Tag, BarChart3, ArrowUpRight } from 'lucide-react';
+import { ExternalLink, Clock, Tag, BarChart3, ArrowUpRight, CheckCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useWallet } from '@/context/WalletContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface NFTDetailProps {
   nft: NFT | null;
@@ -23,9 +23,54 @@ interface NFTDetailProps {
 
 const NFTDetail: React.FC<NFTDetailProps> = ({ nft, isOpen, onClose }) => {
   const { isConnected } = useWallet();
-  const { toast } = useToast();
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [isPurchased, setIsPurchased] = useState(false);
 
   if (!nft) return null;
+
+  const handleBuyNFT = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!isConnected) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to purchase NFTs.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsPurchasing(true);
+      
+      // Simulate transaction processing
+      toast({
+        title: "Processing purchase",
+        description: `Initiating purchase of ${nft.name}...`,
+      });
+      
+      // Simulate blockchain transaction delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simulate successful purchase
+      setIsPurchased(true);
+      setIsPurchasing(false);
+      
+      toast({
+        title: "Purchase successful!",
+        description: `You've successfully purchased ${nft.name}. It will appear in your wallet shortly.`,
+      });
+    } catch (error) {
+      console.error("Purchase error:", error);
+      setIsPurchasing(false);
+      
+      toast({
+        title: "Purchase failed",
+        description: "There was an error processing your purchase. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -180,27 +225,37 @@ const NFTDetail: React.FC<NFTDetailProps> = ({ nft, isOpen, onClose }) => {
             <Button variant="outline" onClick={onClose} className="flex-1">
               Close
             </Button>
-            <Button 
-              className="flex-1 base-gradient text-white"
-              disabled={!isConnected}
-              onClick={() => {
-                if (!isConnected) {
-                  toast({
-                    title: "Wallet not connected",
-                    description: "Please connect your wallet to purchase NFTs.",
-                    variant: "destructive",
-                  });
-                } else {
-                  toast({
-                    title: "Purchase initiated",
-                    description: `Starting purchase process for ${nft.name}.`,
-                  });
-                }
-              }}
-            >
-              <ArrowUpRight className="h-4 w-4 mr-2" />
-              Purchase for {nft.price.amount} {nft.price.currency}
-            </Button>
+            
+            {isPurchased ? (
+              <Button 
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                disabled
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Owned
+              </Button>
+            ) : (
+              <Button 
+                className="flex-1 base-gradient text-white"
+                disabled={!isConnected || isPurchasing}
+                onClick={handleBuyNFT}
+              >
+                {isPurchasing ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing Purchase
+                  </span>
+                ) : (
+                  <>
+                    <ArrowUpRight className="h-4 w-4 mr-2" />
+                    Purchase for {nft.price.amount} {nft.price.currency}
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>

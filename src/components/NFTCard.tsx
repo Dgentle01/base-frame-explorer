@@ -4,9 +4,9 @@ import { NFT } from '@/types/nft';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, ArrowUpRight, Info } from 'lucide-react';
+import { Heart, ArrowUpRight, Info, CheckCircle } from 'lucide-react';
 import { useWallet } from '@/context/WalletContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface NFTCardProps {
   nft: NFT;
@@ -14,10 +14,11 @@ interface NFTCardProps {
 }
 
 const NFTCard: React.FC<NFTCardProps> = ({ nft, onViewDetails }) => {
-  const { isConnected } = useWallet();
-  const { toast } = useToast();
+  const { isConnected, provider } = useWallet();
   const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [isPurchased, setIsPurchased] = useState(false);
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -27,6 +28,50 @@ const NFTCard: React.FC<NFTCardProps> = ({ nft, onViewDetails }) => {
       description: `${nft.name} has been ${isLiked ? "removed from" : "added to"} your favorites.`,
       duration: 3000,
     });
+  };
+
+  const handleBuyNFT = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!isConnected) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to purchase NFTs.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsPurchasing(true);
+      
+      // Simulate transaction processing
+      toast({
+        title: "Processing purchase",
+        description: `Initiating purchase of ${nft.name}...`,
+      });
+      
+      // Simulate blockchain transaction delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simulate successful purchase
+      setIsPurchased(true);
+      setIsPurchasing(false);
+      
+      toast({
+        title: "Purchase successful!",
+        description: `You've successfully purchased ${nft.name}. It will appear in your wallet shortly.`,
+      });
+    } catch (error) {
+      console.error("Purchase error:", error);
+      setIsPurchasing(false);
+      
+      toast({
+        title: "Purchase failed",
+        description: "There was an error processing your purchase. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -118,27 +163,36 @@ const NFTCard: React.FC<NFTCardProps> = ({ nft, onViewDetails }) => {
             <Info className="h-4 w-4 mr-2" />
             Details
           </Button>
-          <Button 
-            className="flex-1 base-gradient text-white"
-            disabled={!isConnected}
-            onClick={() => {
-              if (!isConnected) {
-                toast({
-                  title: "Wallet not connected",
-                  description: "Please connect your wallet to purchase NFTs.",
-                  variant: "destructive",
-                });
-              } else {
-                toast({
-                  title: "Purchase initiated",
-                  description: `Starting purchase process for ${nft.name}.`,
-                });
-              }
-            }}
-          >
-            <ArrowUpRight className="h-4 w-4 mr-2" />
-            Buy
-          </Button>
+          {isPurchased ? (
+            <Button 
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+              disabled
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Owned
+            </Button>
+          ) : (
+            <Button 
+              className="flex-1 base-gradient text-white"
+              disabled={!isConnected || isPurchasing}
+              onClick={handleBuyNFT}
+            >
+              {isPurchasing ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing
+                </span>
+              ) : (
+                <>
+                  <ArrowUpRight className="h-4 w-4 mr-2" />
+                  Buy
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </CardFooter>
     </Card>
