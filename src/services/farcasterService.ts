@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 const FARCASTER_API_URL = "https://api.neynar.com/v2";
 
 // API key for Farcaster/Neynar (to be provided by the user)
-const FARCASTER_API_KEY = import.meta.env.VITE_FARCASTER_API_KEY || "";
+const FARCASTER_API_KEY = localStorage.getItem("VITE_FARCASTER_API_KEY") || "";
 
 export type FarcasterCast = {
   id: string;
@@ -121,9 +121,9 @@ const transformFarcasterResponse = (data: any): FarcasterCast[] => {
         followerCount: cast.author.follower_count || 0
       },
       timestamp: cast.timestamp || new Date().toISOString(),
-      likeCount: cast.reactions.likes || 0,
-      recastCount: cast.reactions.recasts || 0,
-      replyCount: cast.replies.count || 0,
+      likeCount: cast.reactions?.likes || 0,
+      recastCount: cast.reactions?.recasts || 0,
+      replyCount: cast.replies?.count || 0,
       threadId: cast.thread_hash || undefined,
       parentId: cast.parent_hash || undefined,
       embeds: cast.embeds ? cast.embeds.map((embed: any) => ({
@@ -132,7 +132,7 @@ const transformFarcasterResponse = (data: any): FarcasterCast[] => {
         nftToken: embed.nft ? {
           id: embed.nft.id || "unknown",
           name: embed.nft.name || "Unknown NFT",
-          image: embed.nft.image || "https://images.unsplash.com/photo-1634973357973-f2ed2657db3c?q=80&w=1932&auto=format&fit=crop",
+          image: embed.nft.image || "https://images.unsplash.com/photo-1634973357973-f2ed2657db3c?q=80&w=1932&auto=format&fit=crop"
         } : undefined
       })) : []
     }));
