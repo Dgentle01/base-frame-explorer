@@ -3,7 +3,9 @@ import { createPublicClient, http } from 'viem';
 import { mainnet, base } from 'viem/chains';
 import { 
   getZoraProtocolAddress, 
-  createZoraProtocolActions 
+  createZoraProtocolActions,
+  createCreatorClient,
+  createCollectorClient
 } from '@zoralabs/protocol-sdk';
 import { toast } from "@/hooks/use-toast";
 
@@ -31,6 +33,30 @@ const mainnetZoraActions = createZoraProtocolActions({
 const baseZoraActions = createZoraProtocolActions({
   publicClient: baseClient,
   zoraProtocolAddresses: baseZoraAddresses
+});
+
+// Create Zora Creator client for Base network
+const baseCreatorClient = createCreatorClient({
+  chainId: base.id,
+  publicClient: baseClient
+});
+
+// Create Zora Creator client for Mainnet
+const mainnetCreatorClient = createCreatorClient({
+  chainId: mainnet.id,
+  publicClient: mainnetClient
+});
+
+// Create Zora Collector client for Base network
+const baseCollectorClient = createCollectorClient({
+  chainId: base.id,
+  publicClient: baseClient
+});
+
+// Create Zora Collector client for Mainnet
+const mainnetCollectorClient = createCollectorClient({
+  chainId: mainnet.id,
+  publicClient: mainnetClient
 });
 
 // Example collections that work with the Protocol SDK
@@ -175,6 +201,71 @@ export const listZoraNFTs = async (contractAddress: string, limit = 10) => {
 };
 
 /**
+ * Get secondary market information for an NFT
+ * @param contractAddress The NFT contract address
+ * @param tokenId The specific token ID
+ */
+export const getSecondaryInfo = async (contractAddress: string, tokenId: string) => {
+  console.log(`Getting secondary info for ${contractAddress}-${tokenId}`);
+
+  try {
+    // Try on Base network first
+    try {
+      const secondaryInfo = await baseCollectorClient.getSecondaryInfo({
+        tokenContract: contractAddress,
+        tokenId: BigInt(tokenId)
+      });
+      console.log("Secondary info from Base:", secondaryInfo);
+      return secondaryInfo;
+    } catch (baseError) {
+      console.log("Secondary info not found on Base, trying Ethereum mainnet...", baseError);
+      
+      // If not found on Base, try Ethereum mainnet
+      const secondaryInfo = await mainnetCollectorClient.getSecondaryInfo({
+        tokenContract: contractAddress,
+        tokenId: BigInt(tokenId)
+      });
+      console.log("Secondary info from Ethereum mainnet:", secondaryInfo);
+      return secondaryInfo;
+    }
+  } catch (error) {
+    console.error('Error getting secondary market info:', error);
+    return null;
+  }
+};
+
+/**
+ * Get minting costs for an NFT
+ * @param contractAddress The NFT contract address 
+ */
+export const getMintCosts = async (contractAddress: string) => {
+  console.log(`Getting mint costs for collection ${contractAddress}`);
+
+  try {
+    // Try on Base network first
+    try {
+      const mintCosts = await baseCollectorClient.getMintCosts({
+        tokenContract: contractAddress
+      });
+      console.log("Mint costs from Base:", mintCosts);
+      return mintCosts;
+    } catch (baseError) {
+      console.log("Mint costs not found on Base, trying Ethereum mainnet...", baseError);
+      
+      // If not found on Base, try Ethereum mainnet
+      const mintCosts = await mainnetCollectorClient.getMintCosts({
+        tokenContract: contractAddress
+      });
+      console.log("Mint costs from Ethereum mainnet:", mintCosts);
+      return mintCosts;
+    }
+  } catch (error) {
+    console.error('Error getting mint costs:', error);
+    return null;
+  }
+};
+
+/**
  * Get a random collection from the example collections
  * @returns A random collection address and name
  */
@@ -183,4 +274,3 @@ export const getRandomCollection = () => {
   const randomIndex = Math.floor(Math.random() * allCollections.length);
   return allCollections[randomIndex];
 };
-
