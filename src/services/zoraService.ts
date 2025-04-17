@@ -1,11 +1,12 @@
+
 import { toast } from "@/hooks/use-toast";
 import { fetchZoraNFTDetails, listZoraNFTs } from './zoraProtocolService';
 
 // Zora API base URL
-const ZORA_API_URL = "https://api.zora.co";
+const ZORA_API_URL = "https://api.zora.co/graphql";
 
 // API key for Zora (to be provided by the user)
-const ZORA_API_KEY = import.meta.env.VITE_ZORA_API_KEY || "";
+const ZORA_API_KEY = localStorage.getItem("VITE_ZORA_API_KEY") || "";
 
 export type ZoraNFT = {
   id: string;
@@ -44,14 +45,129 @@ export type ZoraNFT = {
   category: string;
 };
 
+// GraphQL query for fetching trending NFTs
+const TRENDING_NFTS_QUERY = `
+  query TrendingTokens($limit: Int!) {
+    tokens(
+      networks: [{network: ETHEREUM, chain: MAINNET}],
+      pagination: {limit: $limit},
+      sort: {sortKey: MINTED, sortDirection: DESC}
+    ) {
+      nodes {
+        token {
+          tokenId
+          name
+          description
+          image {
+            url
+            mimeType
+          }
+          mintInfo {
+            originatorAddress
+            toAddress
+            mintContext {
+              blockTimestamp
+            }
+          }
+          owner
+          tokenContract {
+            name
+            address
+            symbol
+            networkInfo {
+              network
+              chain
+            }
+          }
+          attributes {
+            displayType
+            traitType
+            value
+          }
+        }
+        market {
+          floorPrice {
+            amount {
+              decimal
+            }
+            currency {
+              symbol
+            }
+          }
+          volume {
+            amount {
+              decimal
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+// GraphQL query for fetching a specific NFT
+const NFT_DETAIL_QUERY = `
+  query TokenDetail($address: String!, $tokenId: String!) {
+    token(token: {address: $address, tokenId: $tokenId}) {
+      token {
+        tokenId
+        name
+        description
+        image {
+          url
+          mimeType
+        }
+        mintInfo {
+          originatorAddress
+          toAddress
+          mintContext {
+            blockTimestamp
+          }
+        }
+        owner
+        tokenContract {
+          name
+          address
+          symbol
+          description
+          networkInfo {
+            network
+            chain
+          }
+        }
+        attributes {
+          displayType
+          traitType
+          value
+        }
+      }
+      market {
+        floorPrice {
+          amount {
+            decimal
+          }
+          currency {
+            symbol
+          }
+        }
+        volume {
+          amount {
+            decimal
+          }
+        }
+      }
+    }
+  }
+`;
+
 // Function to get NFTs from Zora
 export const getZoraNFTs = async (limit = 10): Promise<ZoraNFT[]> => {
   // Check if API key is available
   if (!ZORA_API_KEY) {
     console.warn("Zora API key is not configured. Using Zora Protocol SDK.");
     
-    // Example: Fetch from a known collection
-    const exampleCollectionAddress = '0x...' // Replace with an actual collection address
+    // Example: Fetch from a known collection on Base network
+    const exampleCollectionAddress = '0x010be6857f8af26b8646cd04cef29d63b8b979ee'; // Remilia Corporation
     const nftsFromCollection = await listZoraNFTs(exampleCollectionAddress, limit);
     
     // If no NFTs found, fall back to mock data
@@ -59,12 +175,18 @@ export const getZoraNFTs = async (limit = 10): Promise<ZoraNFT[]> => {
       ? nftsFromCollection.map(nft => ({
           ...nft,
           description: 'Fetched via Zora Protocol SDK',
+          collection: {
+            id: exampleCollectionAddress,
+            name: 'Base Collection',
+            imageUrl: nft.image || '',
+          },
           creator: {
             id: 'protocol-sdk',
             name: 'Zora Protocol',
             address: '0x0',
             profileImageUrl: ''
           },
+          owner: '0x0',
           price: { amount: '0', currency: 'ETH' },
           marketStats: {
             floorPrice: '0',
@@ -73,23 +195,22 @@ export const getZoraNFTs = async (limit = 10): Promise<ZoraNFT[]> => {
             marketCap: '0'
           },
           category: 'Art',
-          collection: {
-            id: 'protocol-collection',
-            name: 'Protocol Collection',
-            imageUrl: ''
-          },
-          mintedAt: new Date().toISOString(),
           attributes: []
         }))
       : getMockNFTs();
   }
 
   try {
-    const response = await fetch(`${ZORA_API_URL}/v1/collections?limit=${limit}`, {
+    const response = await fetch(ZORA_API_URL, {
+      method: 'POST',
       headers: {
-        "Accept": "application/json",
-        "X-API-KEY": ZORA_API_KEY
-      }
+        'Content-Type': 'application/json',
+        'X-API-KEY': ZORA_API_KEY
+      },
+      body: JSON.stringify({
+        query: TRENDING_NFTS_QUERY,
+        variables: { limit }
+      })
     });
 
     if (!response.ok) {
@@ -97,46 +218,75 @@ export const getZoraNFTs = async (limit = 10): Promise<ZoraNFT[]> => {
     }
 
     const data = await response.json();
-    return transformZoraResponse(data);
+    return transformZoraGraphQLResponse(data);
   } catch (error) {
     console.error("Error fetching Zora NFTs:", error);
     toast({
       title: "Error",
-      description: "Failed to fetch Zora NFTs. Using mock data instead.",
+      description: "Failed to fetch Zora NFTs. Using fallback data instead.",
       variant: "destructive",
     });
-    return getMockNFTs();
+    
+    // Try with SDK as fallback
+    const exampleCollectionAddress = '0x010be6857f8af26b8646cd04cef29d63b8b979ee';
+    const nftsFromSdk = await listZoraNFTs(exampleCollectionAddress, limit);
+    
+    return nftsFromSdk.length > 0 
+      ? nftsFromSdk.map(nft => ({
+          ...nft,
+          description: 'Fetched via Zora Protocol SDK (fallback)',
+          collection: {
+            id: exampleCollectionAddress,
+            name: 'Base Collection',
+            imageUrl: nft.image || '',
+          },
+          creator: {
+            id: 'protocol-sdk',
+            name: 'Zora Protocol',
+            address: '0x0',
+            profileImageUrl: ''
+          },
+          owner: '0x0',
+          price: { amount: '0', currency: 'ETH' },
+          marketStats: {
+            floorPrice: '0',
+            volume24h: '0',
+            volumeTotal: '0',
+            marketCap: '0'
+          },
+          category: 'Art',
+          attributes: []
+        }))
+      : getMockNFTs();
   }
 };
 
 // Function to get NFT details from Zora
 export const getZoraNFTDetails = async (id: string): Promise<ZoraNFT | null> => {
+  // Parse the ID to get contract address and token ID
+  const [contractAddress, tokenId] = id.split('-');
+  
+  if (!contractAddress || !tokenId) {
+    toast({
+      title: "Invalid NFT ID",
+      description: "The provided NFT ID is not in the correct format.",
+      variant: "destructive"
+    });
+    return null;
+  }
+
   // Check if API key is available
   if (!ZORA_API_KEY) {
     console.warn("Zora API key is not configured. Using Zora Protocol SDK.");
-    
-    // Example: Assume id is in format "contractAddress-tokenId"
-    const [contractAddress, tokenId] = id.split('-');
-    
-    if (!contractAddress || !tokenId) {
-      toast({
-        title: "Invalid NFT ID",
-        description: "The provided NFT ID is not in the correct format.",
-        variant: "destructive"
-      });
-      return null;
-    }
-
     const nftDetails = await fetchZoraNFTDetails(contractAddress, tokenId);
     
     return nftDetails ? {
       ...nftDetails,
-      description: nftDetails.description || 'No description available',
-      creator: {
-        id: nftDetails.creator.id || 'protocol-sdk',
-        name: nftDetails.creator.name || 'Zora Protocol',
-        address: nftDetails.creator.address || '0x0',
-        profileImageUrl: ''
+      owner: '0x0', // Add missing fields from the protocol SDK
+      collection: {
+        id: contractAddress,
+        name: 'Base Collection',
+        imageUrl: nftDetails.image || '',
       },
       price: { amount: '0', currency: 'ETH' },
       marketStats: {
@@ -146,21 +296,24 @@ export const getZoraNFTDetails = async (id: string): Promise<ZoraNFT | null> => 
         marketCap: '0'
       },
       category: 'Art',
-      collection: {
-        id: 'protocol-collection',
-        name: 'Protocol Collection',
-        imageUrl: ''
-      },
       attributes: []
     } : null;
   }
 
   try {
-    const response = await fetch(`${ZORA_API_URL}/v1/tokens/${id}`, {
+    const response = await fetch(ZORA_API_URL, {
+      method: 'POST',
       headers: {
-        "Accept": "application/json",
-        "X-API-KEY": ZORA_API_KEY
-      }
+        'Content-Type': 'application/json',
+        'X-API-KEY': ZORA_API_KEY
+      },
+      body: JSON.stringify({
+        query: NFT_DETAIL_QUERY,
+        variables: { 
+          address: contractAddress,
+          tokenId: tokenId
+        }
+      })
     });
 
     if (!response.ok) {
@@ -168,113 +321,169 @@ export const getZoraNFTDetails = async (id: string): Promise<ZoraNFT | null> => 
     }
 
     const data = await response.json();
-    return transformZoraSingleNFT(data);
+    return transformZoraGraphQLSingleNFT(data, id);
   } catch (error) {
     console.error(`Error fetching Zora NFT details for ${id}:`, error);
     toast({
       title: "Error",
-      description: `Failed to fetch details for NFT ${id}. Using mock data if available.`,
+      description: `Failed to fetch details for NFT ${id}. Using fallback method.`,
       variant: "destructive",
     });
+    
+    // Try with SDK as fallback
+    const nftDetails = await fetchZoraNFTDetails(contractAddress, tokenId);
+    
+    if (nftDetails) {
+      return {
+        ...nftDetails,
+        owner: '0x0',
+        collection: {
+          id: contractAddress,
+          name: 'Base Collection',
+          imageUrl: nftDetails.image || '',
+        },
+        price: { amount: '0', currency: 'ETH' },
+        marketStats: {
+          floorPrice: '0',
+          volume24h: '0',
+          volumeTotal: '0',
+          marketCap: '0'
+        },
+        category: 'Art',
+        attributes: []
+      };
+    }
+    
     const mockNFTs = getMockNFTs();
     return mockNFTs.find(nft => nft.id === id) || null;
   }
 };
 
-// Helper function to transform Zora API response to our ZoraNFT type
-const transformZoraResponse = (data: any): ZoraNFT[] => {
-  // Transform the actual Zora API response to match our ZoraNFT type
-  // This will need to be adjusted based on the actual response structure
-  try {
-    if (!data || !Array.isArray(data.collections)) {
-      return getMockNFTs();
-    }
-    
-    return data.collections.map((item: any) => ({
-      id: item.collectionAddress || `zora-${Math.random().toString(36).substring(2, 10)}`,
-      name: item.name || "Untitled NFT",
-      description: item.description || "No description available",
-      image: item.image?.url || "https://images.unsplash.com/photo-1634973357973-f2ed2657db3c?q=80&w=1932&auto=format&fit=crop",
-      collection: {
-        id: item.collectionAddress || "unknown",
-        name: item.name || "Unknown Collection",
-        imageUrl: item.image?.url || "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?q=80&w=1974&auto=format&fit=crop",
-      },
-      creator: {
-        id: item.creator || "unknown",
-        name: item.creatorName || "Unknown Creator",
-        address: item.creator || "0x0000...0000",
-        profileImageUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1780&auto=format&fit=crop",
-      },
-      tokenId: item.tokenId || "0",
-      contract: item.collectionAddress || "0x0000...0000",
-      owner: item.owner || "0x0000...0000",
-      mintedAt: item.mintedAt || new Date().toISOString(),
-      price: {
-        amount: item.price?.amount || "0",
-        currency: item.price?.currency || "ETH",
-      },
-      marketStats: {
-        floorPrice: item.floorPrice || "0",
-        volume24h: item.volume24h || "0",
-        volumeTotal: item.volumeTotal || "0",
-        marketCap: item.marketCap || "0",
-      },
-      attributes: item.attributes || [],
-      category: item.category || "Art",
-    }));
-  } catch (error) {
-    console.error("Error transforming Zora response:", error);
+// Helper function to transform Zora GraphQL response to our ZoraNFT type
+const transformZoraGraphQLResponse = (data: any): ZoraNFT[] => {
+  if (!data?.data?.tokens?.nodes || !Array.isArray(data.data.tokens.nodes)) {
+    console.error("Invalid Zora API response format:", data);
     return getMockNFTs();
   }
-};
-
-// Helper function to transform a single Zora NFT
-const transformZoraSingleNFT = (data: any): ZoraNFT => {
-  // Transform a single NFT response
-  try {
-    if (!data || !data.token) {
-      return getMockNFTs()[0];
-    }
+  
+  return data.data.tokens.nodes.map((node: any) => {
+    const token = node.token;
+    const market = node.market;
     
-    const item = data.token;
+    if (!token) return getMockNFTs()[0];
+    
+    const mintTimestamp = token.mintInfo?.mintContext?.blockTimestamp 
+      ? new Date(token.mintInfo.mintContext.blockTimestamp * 1000).toISOString()
+      : new Date().toISOString();
+    
     return {
-      id: item.tokenId || `zora-${Math.random().toString(36).substring(2, 10)}`,
-      name: item.name || "Untitled NFT",
-      description: item.description || "No description available",
-      image: item.image?.url || "https://images.unsplash.com/photo-1634973357973-f2ed2657db3c?q=80&w=1932&auto=format&fit=crop",
+      id: `${token.tokenContract.address}-${token.tokenId}`,
+      name: token.name || "Untitled NFT",
+      description: token.description || "No description available",
+      image: token.image?.url || "https://images.unsplash.com/photo-1634973357973-f2ed2657db3c?q=80&w=1932&auto=format&fit=crop",
       collection: {
-        id: item.collectionAddress || "unknown",
-        name: item.collectionName || "Unknown Collection",
-        imageUrl: item.collectionImage?.url || "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?q=80&w=1974&auto=format&fit=crop",
+        id: token.tokenContract.address || "unknown",
+        name: token.tokenContract.name || "Unknown Collection",
+        imageUrl: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?q=80&w=1974&auto=format&fit=crop",
       },
       creator: {
-        id: item.creator || "unknown",
-        name: item.creatorName || "Unknown Creator",
-        address: item.creator || "0x0000...0000",
+        id: token.mintInfo?.originatorAddress || "unknown",
+        name: "Unknown Creator", // GraphQL might not provide creator name directly
+        address: token.mintInfo?.originatorAddress || "0x0000...0000",
         profileImageUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1780&auto=format&fit=crop",
       },
-      tokenId: item.tokenId || "0",
-      contract: item.collectionAddress || "0x0000...0000",
-      owner: item.owner || "0x0000...0000",
-      mintedAt: item.mintedAt || new Date().toISOString(),
+      tokenId: token.tokenId || "0",
+      contract: token.tokenContract.address || "0x0000...0000",
+      owner: token.owner || "0x0000...0000",
+      mintedAt: mintTimestamp,
       price: {
-        amount: item.price?.amount || "0",
-        currency: item.price?.currency || "ETH",
+        amount: market?.floorPrice?.amount?.decimal?.toString() || "0",
+        currency: market?.floorPrice?.currency?.symbol || "ETH",
       },
       marketStats: {
-        floorPrice: item.floorPrice || "0",
-        volume24h: item.volume24h || "0",
-        volumeTotal: item.volumeTotal || "0",
-        marketCap: item.marketCap || "0",
+        floorPrice: market?.floorPrice?.amount?.decimal?.toString() || "0",
+        volume24h: "0", // Not directly provided in this query
+        volumeTotal: market?.volume?.amount?.decimal?.toString() || "0",
+        marketCap: "0", // Not directly provided in this query
       },
-      attributes: item.attributes || [],
-      category: item.category || "Art",
+      attributes: token.attributes?.map((attr: any) => ({
+        trait_type: attr.traitType || "",
+        value: attr.value || "",
+      })) || [],
+      category: getCategoryFromAttributes(token.attributes) || "Art",
     };
-  } catch (error) {
-    console.error("Error transforming single Zora NFT:", error);
+  });
+};
+
+// Helper function to transform a single Zora NFT from GraphQL
+const transformZoraGraphQLSingleNFT = (data: any, id: string): ZoraNFT => {
+  if (!data?.data?.token?.token) {
+    console.error("Invalid Zora API response format for single NFT:", data);
     return getMockNFTs()[0];
   }
+  
+  const token = data.data.token.token;
+  const market = data.data.token.market;
+  
+  const mintTimestamp = token.mintInfo?.mintContext?.blockTimestamp 
+    ? new Date(token.mintInfo.mintContext.blockTimestamp * 1000).toISOString()
+    : new Date().toISOString();
+  
+  return {
+    id: id,
+    name: token.name || "Untitled NFT",
+    description: token.description || "No description available",
+    image: token.image?.url || "https://images.unsplash.com/photo-1634973357973-f2ed2657db3c?q=80&w=1932&auto=format&fit=crop",
+    collection: {
+      id: token.tokenContract.address || "unknown",
+      name: token.tokenContract.name || "Unknown Collection",
+      imageUrl: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?q=80&w=1974&auto=format&fit=crop",
+    },
+    creator: {
+      id: token.mintInfo?.originatorAddress || "unknown",
+      name: "Unknown Creator", // GraphQL might not provide creator name directly
+      address: token.mintInfo?.originatorAddress || "0x0000...0000",
+      profileImageUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1780&auto=format&fit=crop",
+    },
+    tokenId: token.tokenId || "0",
+    contract: token.tokenContract.address || "0x0000...0000",
+    owner: token.owner || "0x0000...0000",
+    mintedAt: mintTimestamp,
+    price: {
+      amount: market?.floorPrice?.amount?.decimal?.toString() || "0",
+      currency: market?.floorPrice?.currency?.symbol || "ETH",
+    },
+    marketStats: {
+      floorPrice: market?.floorPrice?.amount?.decimal?.toString() || "0",
+      volume24h: "0", // Not directly provided in this query
+      volumeTotal: market?.volume?.amount?.decimal?.toString() || "0",
+      marketCap: "0", // Not directly provided in this query
+    },
+    attributes: token.attributes?.map((attr: any) => ({
+      trait_type: attr.traitType || "",
+      value: attr.value || "",
+    })) || [],
+    category: getCategoryFromAttributes(token.attributes) || "Art",
+  };
+};
+
+// Helper function to determine NFT category from attributes
+const getCategoryFromAttributes = (attributes: any[] = []): string => {
+  if (!attributes || !Array.isArray(attributes)) return "Art";
+  
+  const categoryAttribute = attributes.find(attr => 
+    attr.traitType?.toLowerCase() === "category" || 
+    attr.traitType?.toLowerCase() === "type"
+  );
+  
+  if (categoryAttribute?.value) {
+    const value = categoryAttribute.value.toLowerCase();
+    if (value.includes("music")) return "Music";
+    if (value.includes("photo")) return "Photography";
+    if (value.includes("collect")) return "Collectible";
+  }
+  
+  return "Art";
 };
 
 // Helper function to get mock NFTs (used when API is not configured)
