@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Filter, ArrowUpDown } from 'lucide-react';
 import { NFT, NFTView, NFTFilterOptions } from '@/types/nft';
 import { nftService } from '@/services/nftService';
+import CoinManager from '@/components/CoinManager';
 
 const Index = () => {
   const [trendingNFTs, setTrendingNFTs] = useState<NFT[]>([]);
@@ -159,6 +160,7 @@ const Index = () => {
                 >
                   Explore Collections
                 </Button>
+
               </div>
             </div>
           </div>
