@@ -1,4 +1,3 @@
-
 import { createPublicClient, http } from 'viem';
 import { mainnet, base } from 'viem/chains';
 import { 
@@ -8,6 +7,7 @@ import {
   createCollectorClient
 } from '@zoralabs/protocol-sdk';
 import { toast } from "@/hooks/use-toast";
+import { Address } from 'viem';
 
 // Create a public client for interacting with Base and Ethereum networks
 const mainnetClient = createPublicClient({
@@ -273,4 +273,48 @@ export const getRandomCollection = () => {
   const allCollections = [...ZORA_EXAMPLE_COLLECTIONS.base, ...ZORA_EXAMPLE_COLLECTIONS.mainnet];
   const randomIndex = Math.floor(Math.random() * allCollections.length);
   return allCollections[randomIndex];
+};
+
+/**
+ * Fetch coin details
+ * @param address The coin contract address
+ * @param chain Optional: The chain ID (defaults to Base: 8453)
+ */
+export type GetCoinParams = {
+  address: string;   // The coin contract address
+  chain?: number;    // Optional: The chain ID (defaults to Base: 8453)
+};
+
+export const getCoinDetails = async ({ address, chain = base.id }: GetCoinParams) => {
+  console.log(`Fetching coin details for ${address} on chain ${chain}`);
+
+  try {
+    // Determine which client to use based on the chain
+    const currentClient = chain === base.id ? baseClient : mainnetClient;
+
+    // Attempt to get coin details
+    try {
+      const coinDetails = await baseCollectorClient.getToken({
+        tokenContract: address as Address,
+        tokenId: BigInt(0) // Most ERC20-like tokens use 0 as default token ID
+      });
+
+      console.log("Coin details fetched successfully:", coinDetails);
+      return coinDetails;
+    } catch (baseError) {
+      console.log("Coin details not found on Base, trying Ethereum mainnet...", baseError);
+      
+      // If not found on Base, try Ethereum mainnet
+      const coinDetails = await mainnetCollectorClient.getToken({
+        tokenContract: address as Address,
+        tokenId: BigInt(0)
+      });
+
+      console.log("Coin details from Ethereum mainnet:", coinDetails);
+      return coinDetails;
+    }
+  } catch (error) {
+    console.error('Error getting coin details:', error);
+    return null;
+  }
 };
