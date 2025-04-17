@@ -1,5 +1,5 @@
-
 import { toast } from "@/hooks/use-toast";
+import { fetchZoraNFTDetails, listZoraNFTs } from './zoraProtocolService';
 
 // Zora API base URL
 const ZORA_API_URL = "https://api.zora.co";
@@ -48,8 +48,40 @@ export type ZoraNFT = {
 export const getZoraNFTs = async (limit = 10): Promise<ZoraNFT[]> => {
   // Check if API key is available
   if (!ZORA_API_KEY) {
-    console.warn("Zora API key is not configured. Using mock data instead.");
-    return getMockNFTs();
+    console.warn("Zora API key is not configured. Using Zora Protocol SDK.");
+    
+    // Example: Fetch from a known collection
+    const exampleCollectionAddress = '0x...' // Replace with an actual collection address
+    const nftsFromCollection = await listZoraNFTs(exampleCollectionAddress, limit);
+    
+    // If no NFTs found, fall back to mock data
+    return nftsFromCollection.length > 0 
+      ? nftsFromCollection.map(nft => ({
+          ...nft,
+          description: 'Fetched via Zora Protocol SDK',
+          creator: {
+            id: 'protocol-sdk',
+            name: 'Zora Protocol',
+            address: '0x0',
+            profileImageUrl: ''
+          },
+          price: { amount: '0', currency: 'ETH' },
+          marketStats: {
+            floorPrice: '0',
+            volume24h: '0',
+            volumeTotal: '0',
+            marketCap: '0'
+          },
+          category: 'Art',
+          collection: {
+            id: 'protocol-collection',
+            name: 'Protocol Collection',
+            imageUrl: ''
+          },
+          mintedAt: new Date().toISOString(),
+          attributes: []
+        }))
+      : getMockNFTs();
   }
 
   try {
@@ -81,9 +113,46 @@ export const getZoraNFTs = async (limit = 10): Promise<ZoraNFT[]> => {
 export const getZoraNFTDetails = async (id: string): Promise<ZoraNFT | null> => {
   // Check if API key is available
   if (!ZORA_API_KEY) {
-    console.warn("Zora API key is not configured. Using mock data instead.");
-    const mockNFTs = getMockNFTs();
-    return mockNFTs.find(nft => nft.id === id) || null;
+    console.warn("Zora API key is not configured. Using Zora Protocol SDK.");
+    
+    // Example: Assume id is in format "contractAddress-tokenId"
+    const [contractAddress, tokenId] = id.split('-');
+    
+    if (!contractAddress || !tokenId) {
+      toast({
+        title: "Invalid NFT ID",
+        description: "The provided NFT ID is not in the correct format.",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    const nftDetails = await fetchZoraNFTDetails(contractAddress, tokenId);
+    
+    return nftDetails ? {
+      ...nftDetails,
+      description: nftDetails.description || 'No description available',
+      creator: {
+        id: nftDetails.creator.id || 'protocol-sdk',
+        name: nftDetails.creator.name || 'Zora Protocol',
+        address: nftDetails.creator.address || '0x0',
+        profileImageUrl: ''
+      },
+      price: { amount: '0', currency: 'ETH' },
+      marketStats: {
+        floorPrice: '0',
+        volume24h: '0',
+        volumeTotal: '0',
+        marketCap: '0'
+      },
+      category: 'Art',
+      collection: {
+        id: 'protocol-collection',
+        name: 'Protocol Collection',
+        imageUrl: ''
+      },
+      attributes: []
+    } : null;
   }
 
   try {
