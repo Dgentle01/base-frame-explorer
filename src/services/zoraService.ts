@@ -1,12 +1,24 @@
 
 import { toast } from "@/hooks/use-toast";
-import { fetchZoraNFTDetails, listZoraNFTs } from './zoraProtocolService';
+import { 
+  fetchZoraNFTDetails, 
+  listZoraNFTs, 
+  getRandomCollection,
+  ZORA_EXAMPLE_COLLECTIONS 
+} from './zoraProtocolService';
 
 // Zora API base URL
 const ZORA_API_URL = "https://api.zora.co/graphql";
 
 // API key for Zora (to be provided by the user)
-const ZORA_API_KEY = localStorage.getItem("VITE_ZORA_API_KEY") || "";
+let ZORA_API_KEY = "";
+
+// Initialize API key from localStorage
+try {
+  ZORA_API_KEY = localStorage.getItem("VITE_ZORA_API_KEY") || "";
+} catch (error) {
+  console.error("Error accessing localStorage for Zora API key:", error);
+}
 
 export type ZoraNFT = {
   id: string;
@@ -162,45 +174,55 @@ const NFT_DETAIL_QUERY = `
 
 // Function to get NFTs from Zora
 export const getZoraNFTs = async (limit = 10): Promise<ZoraNFT[]> => {
+  console.log("Fetching Zora NFTs, API Key available:", !!ZORA_API_KEY);
+  
   // Check if API key is available
   if (!ZORA_API_KEY) {
     console.warn("Zora API key is not configured. Using Zora Protocol SDK.");
     
-    // Example: Fetch from a known collection on Base network
-    const exampleCollectionAddress = '0x010be6857f8af26b8646cd04cef29d63b8b979ee'; // Remilia Corporation
-    const nftsFromCollection = await listZoraNFTs(exampleCollectionAddress, limit);
+    // Get a random collection from our example collections
+    const randomCollection = getRandomCollection();
+    console.log(`Using random collection: ${randomCollection.name} (${randomCollection.address})`);
+    
+    // Fetch NFTs using the Protocol SDK
+    const nftsFromCollection = await listZoraNFTs(randomCollection.address, limit);
     
     // If no NFTs found, fall back to mock data
-    return nftsFromCollection.length > 0 
-      ? nftsFromCollection.map(nft => ({
-          ...nft,
-          description: 'Fetched via Zora Protocol SDK',
-          collection: {
-            id: exampleCollectionAddress,
-            name: 'Base Collection',
-            imageUrl: nft.image || '',
-          },
-          creator: {
-            id: 'protocol-sdk',
-            name: 'Zora Protocol',
-            address: '0x0',
-            profileImageUrl: ''
-          },
-          owner: '0x0',
-          price: { amount: '0', currency: 'ETH' },
-          marketStats: {
-            floorPrice: '0',
-            volume24h: '0',
-            volumeTotal: '0',
-            marketCap: '0'
-          },
-          category: 'Art',
-          attributes: []
-        }))
-      : getMockNFTs();
+    if (nftsFromCollection.length > 0) {
+      console.log(`Found ${nftsFromCollection.length} NFTs from collection using Protocol SDK`);
+      return nftsFromCollection.map(nft => ({
+        ...nft,
+        description: `${randomCollection.name} - Fetched via Zora Protocol SDK`,
+        collection: {
+          id: randomCollection.address,
+          name: randomCollection.name,
+          imageUrl: nft.image || '',
+        },
+        creator: {
+          id: 'protocol-sdk',
+          name: 'Zora Protocol',
+          address: '0x0',
+          profileImageUrl: ''
+        },
+        owner: '0x0',
+        price: { amount: '0', currency: 'ETH' },
+        marketStats: {
+          floorPrice: '0',
+          volume24h: '0',
+          volumeTotal: '0',
+          marketCap: '0'
+        },
+        category: 'Art',
+        attributes: []
+      }));
+    } else {
+      console.warn("No NFTs found from Protocol SDK, falling back to mock data");
+      return getMockNFTs();
+    }
   }
 
   try {
+    console.log("Making Zora API GraphQL request...");
     const response = await fetch(ZORA_API_URL, {
       method: 'POST',
       headers: {
@@ -218,9 +240,15 @@ export const getZoraNFTs = async (limit = 10): Promise<ZoraNFT[]> => {
     }
 
     const data = await response.json();
+    console.log("Zora API response received:", data);
+    
+    if (data.errors) {
+      throw new Error(`Zora API returned errors: ${JSON.stringify(data.errors)}`);
+    }
+    
     return transformZoraGraphQLResponse(data);
   } catch (error) {
-    console.error("Error fetching Zora NFTs:", error);
+    console.error("Error fetching Zora NFTs via API:", error);
     toast({
       title: "Error",
       description: "Failed to fetch Zora NFTs. Using fallback data instead.",
@@ -228,41 +256,47 @@ export const getZoraNFTs = async (limit = 10): Promise<ZoraNFT[]> => {
     });
     
     // Try with SDK as fallback
-    const exampleCollectionAddress = '0x010be6857f8af26b8646cd04cef29d63b8b979ee';
-    const nftsFromSdk = await listZoraNFTs(exampleCollectionAddress, limit);
+    const randomCollection = getRandomCollection();
+    const nftsFromSdk = await listZoraNFTs(randomCollection.address, limit);
     
-    return nftsFromSdk.length > 0 
-      ? nftsFromSdk.map(nft => ({
-          ...nft,
-          description: 'Fetched via Zora Protocol SDK (fallback)',
-          collection: {
-            id: exampleCollectionAddress,
-            name: 'Base Collection',
-            imageUrl: nft.image || '',
-          },
-          creator: {
-            id: 'protocol-sdk',
-            name: 'Zora Protocol',
-            address: '0x0',
-            profileImageUrl: ''
-          },
-          owner: '0x0',
-          price: { amount: '0', currency: 'ETH' },
-          marketStats: {
-            floorPrice: '0',
-            volume24h: '0',
-            volumeTotal: '0',
-            marketCap: '0'
-          },
-          category: 'Art',
-          attributes: []
-        }))
-      : getMockNFTs();
+    if (nftsFromSdk.length > 0) {
+      console.log(`Found ${nftsFromSdk.length} NFTs using Protocol SDK as fallback`);
+      return nftsFromSdk.map(nft => ({
+        ...nft,
+        description: `${randomCollection.name} - Fetched via Zora Protocol SDK (fallback)`,
+        collection: {
+          id: randomCollection.address,
+          name: randomCollection.name,
+          imageUrl: nft.image || '',
+        },
+        creator: {
+          id: 'protocol-sdk',
+          name: 'Zora Protocol',
+          address: '0x0',
+          profileImageUrl: ''
+        },
+        owner: '0x0',
+        price: { amount: '0', currency: 'ETH' },
+        marketStats: {
+          floorPrice: '0',
+          volume24h: '0',
+          volumeTotal: '0',
+          marketCap: '0'
+        },
+        category: 'Art',
+        attributes: []
+      }));
+    }
+    
+    console.warn("Protocol SDK fallback also failed, using mock data");
+    return getMockNFTs();
   }
 };
 
 // Function to get NFT details from Zora
 export const getZoraNFTDetails = async (id: string): Promise<ZoraNFT | null> => {
+  console.log(`Fetching NFT details for ${id}, API Key available:`, !!ZORA_API_KEY);
+  
   // Parse the ID to get contract address and token ID
   const [contractAddress, tokenId] = id.split('-');
   
@@ -280,27 +314,34 @@ export const getZoraNFTDetails = async (id: string): Promise<ZoraNFT | null> => 
     console.warn("Zora API key is not configured. Using Zora Protocol SDK.");
     const nftDetails = await fetchZoraNFTDetails(contractAddress, tokenId);
     
-    return nftDetails ? {
-      ...nftDetails,
-      owner: '0x0', // Add missing fields from the protocol SDK
-      collection: {
-        id: contractAddress,
-        name: 'Base Collection',
-        imageUrl: nftDetails.image || '',
-      },
-      price: { amount: '0', currency: 'ETH' },
-      marketStats: {
-        floorPrice: '0',
-        volume24h: '0',
-        volumeTotal: '0',
-        marketCap: '0'
-      },
-      category: 'Art',
-      attributes: []
-    } : null;
+    if (nftDetails) {
+      console.log("NFT details fetched successfully via Protocol SDK");
+      return {
+        ...nftDetails,
+        owner: '0x0', // Add missing fields from the protocol SDK
+        collection: {
+          id: contractAddress,
+          name: 'Base Collection',
+          imageUrl: nftDetails.image || '',
+        },
+        price: { amount: '0', currency: 'ETH' },
+        marketStats: {
+          floorPrice: '0',
+          volume24h: '0',
+          volumeTotal: '0',
+          marketCap: '0'
+        },
+        category: 'Art',
+        attributes: []
+      };
+    } else {
+      console.warn("Failed to fetch NFT details via Protocol SDK");
+      return null;
+    }
   }
 
   try {
+    console.log(`Making Zora API request for NFT ${contractAddress}-${tokenId}...`);
     const response = await fetch(ZORA_API_URL, {
       method: 'POST',
       headers: {
@@ -321,6 +362,12 @@ export const getZoraNFTDetails = async (id: string): Promise<ZoraNFT | null> => 
     }
 
     const data = await response.json();
+    console.log("Zora API NFT detail response:", data);
+    
+    if (data.errors) {
+      throw new Error(`Zora API returned errors: ${JSON.stringify(data.errors)}`);
+    }
+    
     return transformZoraGraphQLSingleNFT(data, id);
   } catch (error) {
     console.error(`Error fetching Zora NFT details for ${id}:`, error);
@@ -334,6 +381,7 @@ export const getZoraNFTDetails = async (id: string): Promise<ZoraNFT | null> => 
     const nftDetails = await fetchZoraNFTDetails(contractAddress, tokenId);
     
     if (nftDetails) {
+      console.log("Successfully fetched NFT details via Protocol SDK as fallback");
       return {
         ...nftDetails,
         owner: '0x0',
@@ -354,6 +402,7 @@ export const getZoraNFTDetails = async (id: string): Promise<ZoraNFT | null> => 
       };
     }
     
+    console.warn("All methods failed, checking mock data");
     const mockNFTs = getMockNFTs();
     return mockNFTs.find(nft => nft.id === id) || null;
   }
