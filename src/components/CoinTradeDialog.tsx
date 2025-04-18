@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeftRight, TrendingUp, TrendingDown } from "lucide-react";
+import { ArrowLeftRight, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { useWallet } from "@/context/WalletContext";
 import { toast } from "@/hooks/use-toast";
 import { buyCoin, sellCoin, simulateCoinBuy, simulateCoinSell } from "@/services/coinService";
@@ -31,7 +31,12 @@ const sellFormSchema = z.object({
 interface CoinTradeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedCoin?: any; // Optional coin to pre-populate
+  selectedCoin?: {
+    address: string;
+    name?: string;
+    symbol?: string;
+    [key: string]: any;
+  } | null; 
 }
 
 export default function CoinTradeDialog({ open, onOpenChange, selectedCoin }: CoinTradeDialogProps) {
@@ -134,7 +139,7 @@ export default function CoinTradeDialog({ open, onOpenChange, selectedCoin }: Co
         values.coinAddress as `0x${string}`, 
         values.amountETH, 
         address as `0x${string}`,
-        simulatedBuyOutput ? BigInt(Math.floor(Number(simulatedBuyOutput) * 0.95)) : 0n // 5% slippage
+        simulatedBuyOutput ? BigInt(Math.floor(Number(simulatedBuyOutput) * 0.95)) : BigInt(0) // 5% slippage
       );
 
       toast({
@@ -170,7 +175,7 @@ export default function CoinTradeDialog({ open, onOpenChange, selectedCoin }: Co
         values.coinAddress as `0x${string}`, 
         values.tokenAmount, 
         address as `0x${string}`,
-        simulatedSellOutput ? BigInt(Math.floor(Number(simulatedSellOutput) * 0.95)) : 0n // 5% slippage
+        simulatedSellOutput ? BigInt(Math.floor(Number(simulatedSellOutput) * 0.95)) : BigInt(0) // 5% slippage
       );
 
       toast({
@@ -260,7 +265,12 @@ export default function CoinTradeDialog({ open, onOpenChange, selectedCoin }: Co
                     className="w-full" 
                     disabled={isBuying}
                   >
-                    {isBuying ? "Processing..." : "Buy Coin"}
+                    {isBuying ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : "Buy Coin"}
                   </Button>
                 </form>
               </Form>
@@ -309,7 +319,12 @@ export default function CoinTradeDialog({ open, onOpenChange, selectedCoin }: Co
                     className="w-full" 
                     disabled={isSelling}
                   >
-                    {isSelling ? "Processing..." : "Sell Coin"}
+                    {isSelling ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : "Sell Coin"}
                   </Button>
                 </form>
               </Form>
