@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { WalletProvider } from "@/context/WalletContext";
 import ApiCredentials from "./pages/ApiCredentials";
+import CoinsPage from "./pages/Coins";
 
 const queryClient = new QueryClient();
 
