@@ -9,8 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { ArrowLeftRight, TrendingUp, TrendingDown } from "lucide-react";
 import { useWallet } from "@/context/WalletContext";
 import { toast } from "@/hooks/use-toast";
@@ -102,15 +100,15 @@ export default function CoinTradeDialog({ open, onOpenChange, selectedCoin }: Co
 
   // Watch for changes to trigger simulations
   useEffect(() => {
-    const buySubscription = buyForm.watch((value, { name }) => {
-      if (name === 'amountETH' || name === 'coinAddress') {
-        debouncedSimulateBuy(value.coinAddress || "", value.amountETH || "0");
+    const buySubscription = buyForm.watch((value) => {
+      if (value.amountETH && value.coinAddress) {
+        debouncedSimulateBuy(value.coinAddress, value.amountETH);
       }
     });
     
-    const sellSubscription = sellForm.watch((value, { name }) => {
-      if (name === 'tokenAmount' || name === 'coinAddress') {
-        debouncedSimulateSell(value.coinAddress || "", value.tokenAmount || "0");
+    const sellSubscription = sellForm.watch((value) => {
+      if (value.tokenAmount && value.coinAddress) {
+        debouncedSimulateSell(value.coinAddress, value.tokenAmount);
       }
     });
 

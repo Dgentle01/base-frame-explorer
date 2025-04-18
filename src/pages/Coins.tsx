@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Coins, ArrowUpDown, TrendingUp, Clock, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,10 +11,12 @@ import {
   fetchTopGainers, 
   fetchTopVolume, 
   fetchMostValuable, 
-  fetchNewCoins 
+  fetchNewCoins,
+  fetchRecentlyTraded
 } from '@/services/coinService';
 import { useWallet } from '@/context/WalletContext';
 import CoinTradeDialog from '@/components/CoinTradeDialog';
+import CoinDetailsCard from '@/components/CoinDetailsCard';
 
 export default function CoinsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
@@ -39,6 +42,11 @@ export default function CoinsPage() {
   const { data: newCoins, isLoading: loadingNewCoins } = useQuery({
     queryKey: ['coins', 'newCoins'],
     queryFn: () => fetchNewCoins(5)
+  });
+
+  const { data: recentlyTraded, isLoading: loadingRecentlyTraded } = useQuery({
+    queryKey: ['coins', 'recentlyTraded'],
+    queryFn: () => fetchRecentlyTraded(5)
   });
 
   const handleTradeCoin = (coin: any) => {
@@ -85,123 +93,131 @@ export default function CoinsPage() {
         </TabsList>
 
         <TabsContent value="explore" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
               <h2 className="text-xl font-semibold mb-4">Top Gainers</h2>
               {loadingGainers ? (
-                <p>Loading...</p>
-              ) : (
-                <ul className="space-y-2">
-                  {topGainers?.map((coin) => (
-                    <li 
-                      key={coin.address} 
-                      className="flex justify-between items-center p-2 hover:bg-accent rounded cursor-pointer"
-                      onClick={() => handleTradeCoin(coin)}
-                    >
-                      <span>{coin.name}</span>
-                      <span className="text-green-500">+{coin.priceChange24h}%</span>
-                    </li>
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="animate-pulse h-16 bg-muted rounded"></div>
                   ))}
-                </ul>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {topGainers?.map((coin) => (
+                    <Link to={`/coins/${coin.address}`} key={coin.address}>
+                      <Card className="hover:bg-muted/50 transition-colors">
+                        <div className="p-4 flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{coin.name}</p>
+                            <p className="text-sm text-muted-foreground">${coin.symbol}</p>
+                          </div>
+                          <span className="text-green-500">+{coin.priceChange24h || '0.00'}%</span>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
               )}
-            </Card>
+            </div>
 
-            <Card className="p-4">
+            <div>
               <h2 className="text-xl font-semibold mb-4">Top Volume</h2>
               {loadingVolume ? (
-                <p>Loading...</p>
-              ) : (
-                <ul className="space-y-2">
-                  {topVolume?.map((coin) => (
-                    <li 
-                      key={coin.address} 
-                      className="flex justify-between items-center p-2 hover:bg-accent rounded cursor-pointer"
-                      onClick={() => handleTradeCoin(coin)}
-                    >
-                      <span>{coin.name}</span>
-                      <span className="text-muted-foreground">{coin.volume24h}</span>
-                    </li>
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="animate-pulse h-16 bg-muted rounded"></div>
                   ))}
-                </ul>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {topVolume?.map((coin) => (
+                    <Link to={`/coins/${coin.address}`} key={coin.address}>
+                      <Card className="hover:bg-muted/50 transition-colors">
+                        <div className="p-4 flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{coin.name}</p>
+                            <p className="text-sm text-muted-foreground">${coin.symbol}</p>
+                          </div>
+                          <span className="text-muted-foreground">{coin.volume24h || '0'} ETH</span>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
               )}
-            </Card>
+            </div>
           </div>
         </TabsContent>
 
         <TabsContent value="trending" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="p-4">
-              <h2 className="text-xl font-semibold mb-4">Most Valuable</h2>
-              {loadingMostValuable ? (
-                <p>Loading...</p>
-              ) : (
-                <ul className="space-y-2">
-                  {mostValuable?.map((coin) => (
-                    <li 
-                      key={coin.address} 
-                      className="flex justify-between items-center p-2 hover:bg-accent rounded cursor-pointer"
-                      onClick={() => handleTradeCoin(coin)}
-                    >
-                      <span>{coin.name}</span>
-                      <span className="text-muted-foreground">{coin.marketCap}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Card>
-
-            <Card className="p-4">
-              <h2 className="text-xl font-semibold mb-4">Top Gainers</h2>
-              {loadingGainers ? (
-                <p>Loading...</p>
-              ) : (
-                <ul className="space-y-2">
-                  {topGainers?.map((coin) => (
-                    <li 
-                      key={coin.address} 
-                      className="flex justify-between items-center p-2 hover:bg-accent rounded cursor-pointer"
-                      onClick={() => handleTradeCoin(coin)}
-                    >
-                      <span>{coin.name}</span>
-                      <span className="text-green-500">+{coin.priceChange24h}%</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {loadingMostValuable ? (
+              [...Array(6)].map((_, i) => (
+                <div key={i} className="animate-pulse h-64 bg-muted rounded"></div>
+              ))
+            ) : (
+              mostValuable?.slice(0, 6).map((coin) => (
+                <CoinDetailsCard 
+                  key={coin.address}
+                  coin={coin}
+                  onTrade={() => handleTradeCoin(coin)}
+                />
+              ))
+            )}
+          </div>
+          
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Recently Traded</h2>
+            {loadingRecentlyTraded ? (
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="animate-pulse h-16 bg-muted rounded"></div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {recentlyTraded?.map((coin) => (
+                  <Link to={`/coins/${coin.address}`} key={coin.address}>
+                    <Card className="hover:bg-muted/50 transition-colors">
+                      <div className="p-4">
+                        <p className="font-medium">{coin.name}</p>
+                        <div className="flex justify-between mt-1">
+                          <p className="text-sm text-muted-foreground">${coin.symbol}</p>
+                          <p className="text-sm">Vol: {coin.volume24h || '0'} ETH</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="new" className="space-y-6">
-          <Card className="p-4">
-            <h2 className="text-xl font-semibold mb-4">New Coins</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {loadingNewCoins ? (
-              <p>Loading...</p>
+              [...Array(6)].map((_, i) => (
+                <div key={i} className="animate-pulse h-64 bg-muted rounded"></div>
+              ))
             ) : (
-              <ul className="space-y-2">
-                {newCoins?.map((coin) => (
-                  <li 
-                    key={coin.address} 
-                    className="flex justify-between items-center p-2 hover:bg-accent rounded cursor-pointer"
-                    onClick={() => handleTradeCoin(coin)}
-                  >
-                    <div>
-                      <span className="font-medium">{coin.name}</span>
-                      <span className="text-muted-foreground ml-2 text-sm">({coin.symbol})</span>
-                    </div>
-                    <span className="text-muted-foreground text-sm">{new Date(coin.createdAt).toLocaleDateString()}</span>
-                  </li>
-                ))}
-              </ul>
+              newCoins?.map((coin) => (
+                <CoinDetailsCard 
+                  key={coin.address}
+                  coin={coin}
+                  onTrade={() => handleTradeCoin(coin)}
+                />
+              ))
             )}
-          </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="portfolio" className="space-y-6">
           {isConnected ? (
             <Card className="p-4">
               <h2 className="text-xl font-semibold mb-4">Your Coins</h2>
-              <p className="text-muted-foreground">Connect your wallet to view your coin holdings.</p>
+              <p className="text-muted-foreground">Your coin holdings will appear here once you have traded some coins.</p>
             </Card>
           ) : (
             <Card className="p-4">

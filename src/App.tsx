@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import { WalletProvider } from "@/context/WalletContext";
 import ApiCredentials from "./pages/ApiCredentials";
 import CoinsPage from "./pages/Coins";
+import CoinDetailsPage from "./pages/CoinDetails";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/coins" element={<CoinsPage />} />
+            <Route path="/coins/:address" element={<CoinDetailsPage />} />
             <Route path="/api-credentials" element={<ApiCredentials />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
