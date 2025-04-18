@@ -63,6 +63,9 @@ export default function CoinDetailsPage() {
     );
   }
 
+  // Check if user is a creator
+  const isCreator = coin.creatorAddress && address && coin.creatorAddress.toLowerCase() === address.toLowerCase();
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
@@ -83,7 +86,7 @@ export default function CoinDetailsPage() {
                 <Coins className="h-4 w-4 mr-2" />
                 Trade
               </Button>
-              {coin.creatorAddress === address && (
+              {isCreator && (
                 <Button>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit

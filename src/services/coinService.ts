@@ -7,7 +7,7 @@ import {
   createCoin,
   tradeCoin,
   simulateBuy,
-  simulateSell,
+  // simulateSell is not exported from the SDK as expected
   type CreateCoinArgs,
   type TradeParams,
   setApiKey,
@@ -321,20 +321,23 @@ export async function simulateCoinBuy(
   }
 }
 
-// Simulate sell to check expected output
+// Simulate sell to check expected output - custom implementation since simulateSell is not exported
 export async function simulateCoinSell(
   coinAddress: Address,
   tokenAmount: string
 ) {
   try {
-    const simulation = await simulateSell({
-      target: coinAddress,
-      requestedSellAmount: parseEther(tokenAmount),
-      publicClient,
-    });
+    // Since simulateSell isn't available from the SDK, we'll make a simplified version
+    // This is just a placeholder that returns a mock value
+    // In a real implementation, you would use the SDK's functionality once available
+    console.warn("Using placeholder simulateCoinSell function - real simulation not available");
+    
+    // Simplified calculation for demo purposes
+    // In reality, you'd want to query the contract or use an SDK function
+    const mockAmountOut = parseEther(tokenAmount) / 10n; // Simplified calculation
     
     return {
-      amountOut: simulation.amountOut,
+      amountOut: mockAmountOut,
     };
   } catch (error) {
     console.error("Error simulating sell:", error);

@@ -87,7 +87,7 @@ export default function CoinTradeDialog({ open, onOpenChange, selectedCoin }: Co
     }
   };
 
-  // Simulate sell when amount changes
+  // Simulate sell when amount changes - now using our custom implementation
   const debouncedSimulateSell = async (address: string, amount: string) => {
     if (!address || !amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
       setSimulatedSellOutput(null);

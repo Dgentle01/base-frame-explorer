@@ -74,7 +74,8 @@ export default function CreateCoinDialog({ open, onOpenChange }: CreateCoinDialo
         toast({
           title: "Warning",
           description: "For production use, you should upload metadata to IPFS first",
-          variant: "warning",
+          // Changed from 'warning' to 'destructive' to match allowed variants
+          variant: "destructive",
         });
       }
 

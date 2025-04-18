@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -112,7 +111,7 @@ export default function CoinsPage() {
                             <p className="font-medium">{coin.name}</p>
                             <p className="text-sm text-muted-foreground">${coin.symbol}</p>
                           </div>
-                          <span className="text-green-500">+{coin.priceChange24h || '0.00'}%</span>
+                          <span className="text-green-500">+{coin?.priceChange24h ?? '0.00'}%</span>
                         </div>
                       </Card>
                     </Link>
