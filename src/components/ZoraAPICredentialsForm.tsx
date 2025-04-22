@@ -5,19 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { InfoIcon } from "lucide-react";
 
 const ZoraAPICredentialsForm = () => {
   const [zoraApiKey, setZoraApiKey] = useState("");
-  const [farcasterApiKey, setFarcasterApiKey] = useState("");
+  const [neynarApiKey, setNeynarApiKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get saved API keys from localStorage on component mount
   useEffect(() => {
     const savedZoraApiKey = localStorage.getItem("VITE_ZORA_API_KEY");
-    const savedFarcasterApiKey = localStorage.getItem("VITE_FARCASTER_API_KEY");
+    const savedNeynarApiKey = localStorage.getItem("VITE_NEYNAR_API_KEY");
     
     if (savedZoraApiKey) setZoraApiKey(savedZoraApiKey);
-    if (savedFarcasterApiKey) setFarcasterApiKey(savedFarcasterApiKey);
+    if (savedNeynarApiKey) setNeynarApiKey(savedNeynarApiKey);
   }, []);
 
   const handleSaveCredentials = (e: React.FormEvent) => {
@@ -25,16 +25,14 @@ const ZoraAPICredentialsForm = () => {
     setIsLoading(true);
 
     try {
-      // Store API keys in localStorage
       localStorage.setItem("VITE_ZORA_API_KEY", zoraApiKey);
-      localStorage.setItem("VITE_FARCASTER_API_KEY", farcasterApiKey);
+      localStorage.setItem("VITE_NEYNAR_API_KEY", neynarApiKey);
 
       toast({
         title: "API credentials saved",
         description: "Your API credentials have been saved. The page will reload to apply changes.",
       });
 
-      // Reload the page after a short delay to apply changes
       setTimeout(() => {
         window.location.reload();
       }, 2000);
@@ -53,9 +51,9 @@ const ZoraAPICredentialsForm = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>API Credentials</CardTitle>
+        <CardTitle>Protocol API Credentials</CardTitle>
         <CardDescription>
-          Enter your API credentials for Zora and Farcaster (Neynar) to use real data.
+          Enter API keys for Zora and Neynar to enable full functionality.
           Leave empty to use mock data.
         </CardDescription>
       </CardHeader>
@@ -70,38 +68,24 @@ const ZoraAPICredentialsForm = () => {
               value={zoraApiKey}
               onChange={(e) => setZoraApiKey(e.target.value)}
             />
-            <p className="text-xs text-gray-500">
-              Get your Zora API key from{" "}
-              <a
-                href="https://zora.co/docs/developers/apis"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                Zora Developer Portal
-              </a>
+            <p className="text-xs text-gray-500 flex items-start gap-1">
+              <InfoIcon className="h-4 w-4 mt-0.5" />
+              Get your Zora API key from the Zora Developer Portal
             </p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="farcaster-api-key">Farcaster API Key (Neynar)</Label>
+            <Label htmlFor="neynar-api-key">Neynar API Key</Label>
             <Input
-              id="farcaster-api-key"
+              id="neynar-api-key"
               type="password"
-              placeholder="Enter your Farcaster (Neynar) API key"
-              value={farcasterApiKey}
-              onChange={(e) => setFarcasterApiKey(e.target.value)}
+              placeholder="Enter your Neynar API key"
+              value={neynarApiKey}
+              onChange={(e) => setNeynarApiKey(e.target.value)}
             />
-            <p className="text-xs text-gray-500">
-              Get your Farcaster API key from{" "}
-              <a
-                href="https://neynar.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                Neynar
-              </a>
+            <p className="text-xs text-gray-500 flex items-start gap-1">
+              <InfoIcon className="h-4 w-4 mt-0.5" />
+              Get your Neynar API key for Farcaster-related features
             </p>
           </div>
           
@@ -112,7 +96,7 @@ const ZoraAPICredentialsForm = () => {
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-xs text-gray-500">
-          Your API keys will be stored in your browser's localStorage for convenience.
+          Your API keys will be stored securely in browser localStorage.
         </p>
       </CardFooter>
     </Card>
