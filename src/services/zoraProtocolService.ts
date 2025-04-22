@@ -4,7 +4,7 @@ import { mainnet, base } from 'viem/chains';
 import { toast } from "@/hooks/use-toast";
 import { Address } from 'viem';
 
-// Create public clients with limited functionality since the SDK methods are not available
+// Create public clients
 const mainnetClient = createPublicClient({
   chain: mainnet,
   transport: http()

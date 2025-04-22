@@ -7,7 +7,7 @@ import {
   createCoin,
   tradeCoin,
   simulateBuy,
-  // simulateSell is not exported from the SDK as expected
+  // Note: simulateSell is not exported directly from the SDK
   type CreateCoinArgs,
   type TradeParams,
   setApiKey,
@@ -50,7 +50,13 @@ export function getWalletClient(account: Hex) {
 export async function fetchTopGainers(count = 10, after?: string) {
   try {
     const res = await getCoinsTopGainers({ count, after });
-    return res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    const coins = res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    
+    // Add priceChange24h property to each coin if it doesn't exist
+    return coins.map(coin => ({
+      ...coin,
+      priceChange24h: coin.priceChange24h || "0.00"
+    }));
   } catch (error) {
     console.error("Error fetching top gainers:", error);
     toast({
@@ -130,6 +136,15 @@ export async function fetchRecentlyTraded(count = 10, after?: string) {
 export async function fetchCoinDetails(address: string) {
   try {
     const res = await getCoin({ address });
+    
+    // Add priceChange24h property if it doesn't exist
+    if (res.data?.zora20Token) {
+      return {
+        ...res.data.zora20Token,
+        priceChange24h: res.data.zora20Token.priceChange24h || "0.00"
+      };
+    }
+    
     return res.data?.zora20Token;
   } catch (error) {
     console.error("Error fetching coin details:", error);
@@ -321,7 +336,7 @@ export async function simulateCoinBuy(
   }
 }
 
-// Simulate sell to check expected output - custom implementation since simulateSell is not exported
+// Custom implementation of simulateSell since it's not exported from the SDK
 export async function simulateCoinSell(
   coinAddress: Address,
   tokenAmount: string
@@ -329,11 +344,9 @@ export async function simulateCoinSell(
   try {
     // Since simulateSell isn't available from the SDK, we'll make a simplified version
     // This is just a placeholder that returns a mock value
-    // In a real implementation, you would use the SDK's functionality once available
     console.warn("Using placeholder simulateCoinSell function - real simulation not available");
     
     // Simplified calculation for demo purposes
-    // In reality, you'd want to query the contract or use an SDK function
     const mockAmountOut = parseEther(tokenAmount) / 10n; // Simplified calculation
     
     return {

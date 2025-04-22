@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Edit, Coins } from 'lucide-react';
@@ -63,8 +63,10 @@ export default function CoinDetailsPage() {
     );
   }
 
-  // Check if user is a creator
-  const isCreator = coin.creatorAddress && address && coin.creatorAddress.toLowerCase() === address.toLowerCase();
+  // Check if user is a creator - safely handle potential undefined values
+  const isCreator = coin.creatorAddress && address 
+    ? coin.creatorAddress.toLowerCase() === address.toLowerCase() 
+    : false;
 
   return (
     <div className="container mx-auto p-6">

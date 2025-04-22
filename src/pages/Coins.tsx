@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -51,6 +52,16 @@ export default function CoinsPage() {
   const handleTradeCoin = (coin: any) => {
     setSelectedCoin(coin);
     setIsTradeDialogOpen(true);
+  };
+  
+  // Safe helper function to get price change with fallback
+  const getPriceChange = (coin: any) => {
+    // Check if the coin has priceChange24h property
+    if (coin && typeof coin.priceChange24h !== 'undefined') {
+      return coin.priceChange24h;
+    }
+    // Fallback for when priceChange24h is not available
+    return '0.00';
   };
   
   return (
@@ -111,7 +122,7 @@ export default function CoinsPage() {
                             <p className="font-medium">{coin.name}</p>
                             <p className="text-sm text-muted-foreground">${coin.symbol}</p>
                           </div>
-                          <span className="text-green-500">+{coin?.priceChange24h ?? '0.00'}%</span>
+                          <span className="text-green-500">+{getPriceChange(coin)}%</span>
                         </div>
                       </Card>
                     </Link>
