@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ interface CoinDetailsCardProps {
     marketCap?: string | bigint;
     volume24h?: string | bigint;
     priceChange24h?: string | number;
+    marketCapDelta24h?: string | number;
     createdAt?: string;
     creatorAddress?: string;
     payoutRecipient?: string;
@@ -45,18 +45,24 @@ export default function CoinDetailsCard({ coin, onTrade }: CoinDetailsCardProps)
     ? formatUnits(coin.totalSupply, 18)
     : (typeof coin.totalSupply === 'string' ? coin.totalSupply : '0');
   
-  // Format price change
-  const priceChangeColor = !coin.priceChange24h || parseFloat(String(coin.priceChange24h)) >= 0 
-    ? 'text-green-500' 
-    : 'text-red-500';
-    
-  const priceChangePrefix = !coin.priceChange24h || parseFloat(String(coin.priceChange24h)) >= 0 
-    ? '+' 
-    : '';
-    
-  const priceChangeValue = coin.priceChange24h 
-    ? `${priceChangePrefix}${parseFloat(String(coin.priceChange24h)).toFixed(2)}%` 
-    : '+0.00%';
+  // Format price change with a more robust approach
+  const getPriceChange = () => {
+    // First try to use priceChange24h
+    if (coin.priceChange24h && !isNaN(parseFloat(String(coin.priceChange24h)))) {
+      return parseFloat(String(coin.priceChange24h));
+    }
+    // Fall back to marketCapDelta24h if available
+    else if (coin.marketCapDelta24h && !isNaN(parseFloat(String(coin.marketCapDelta24h)))) {
+      return parseFloat(String(coin.marketCapDelta24h));
+    }
+    // Default to 0 if neither is available or valid
+    return 0;
+  };
+  
+  const priceChange = getPriceChange();
+  const priceChangeColor = priceChange >= 0 ? 'text-green-500' : 'text-red-500';
+  const priceChangePrefix = priceChange >= 0 ? '+' : '';
+  const priceChangeValue = `${priceChangePrefix}${priceChange.toFixed(2)}%`;
 
   return (
     <Card className="overflow-hidden">

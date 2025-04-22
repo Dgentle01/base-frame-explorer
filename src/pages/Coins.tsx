@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -56,11 +55,15 @@ export default function CoinsPage() {
   
   // Safe helper function to get price change with fallback
   const getPriceChange = (coin: any) => {
-    // Check if the coin has priceChange24h property
-    if (coin && typeof coin.priceChange24h !== 'undefined') {
-      return coin.priceChange24h;
+    // First try to use priceChange24h if it exists and is a valid number
+    if (coin && coin.priceChange24h && !isNaN(parseFloat(String(coin.priceChange24h)))) {
+      return parseFloat(String(coin.priceChange24h)).toFixed(2);
     }
-    // Fallback for when priceChange24h is not available
+    // Fall back to marketCapDelta24h if available
+    else if (coin && coin.marketCapDelta24h && !isNaN(parseFloat(String(coin.marketCapDelta24h)))) {
+      return parseFloat(String(coin.marketCapDelta24h)).toFixed(2);
+    }
+    // Default fallback
     return '0.00';
   };
   

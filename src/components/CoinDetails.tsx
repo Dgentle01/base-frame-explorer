@@ -33,6 +33,13 @@ export function CoinDetails({ address }: CoinDetailsProps) {
   if (error) return <div>Error: {error}</div>;
   if (!coin) return <div>No coin data found</div>;
 
+  // Format price change for display
+  const priceChange = coin.priceChange24h ? 
+    `${parseFloat(coin.priceChange24h).toFixed(2)}%` : 
+    (coin.marketCapDelta24h ? 
+      `${parseFloat(coin.marketCapDelta24h).toFixed(2)}%` : 
+      "N/A");
+
   return (
     <div>
       <h2>{coin.name} ({coin.symbol})</h2>
@@ -41,6 +48,7 @@ export function CoinDetails({ address }: CoinDetailsProps) {
         <li>Total Supply: {coin.totalSupply || "Unknown"}</li>
         <li>Market Cap: {coin.marketCap || "Unknown"}</li>
         <li>24h Volume: {coin.volume24h || "Unknown"}</li>
+        <li>24h Price Change: {priceChange}</li>
         <li>Created At: {coin.createdAt ? new Date(coin.createdAt).toLocaleString() : "Unknown"}</li>
       </ul>
     </div>

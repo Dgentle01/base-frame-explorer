@@ -52,10 +52,10 @@ export async function fetchTopGainers(count = 10, after?: string) {
     const res = await getCoinsTopGainers({ count, after });
     const coins = res.data?.exploreList?.edges.map((e) => e.node) ?? [];
     
-    // Add priceChange24h property to each coin if it doesn't exist
+    // Ensure each coin has a consistent price change property
     return coins.map(coin => ({
       ...coin,
-      priceChange24h: coin.priceChange24h || "0.00"
+      priceChange24h: coin.priceChange24h || (coin.marketCapDelta24h || "0.00")
     }));
   } catch (error) {
     console.error("Error fetching top gainers:", error);
@@ -137,11 +137,12 @@ export async function fetchCoinDetails(address: string) {
   try {
     const res = await getCoin({ address });
     
-    // Add priceChange24h property if it doesn't exist
+    // Ensure the coin has a consistent price change property
     if (res.data?.zora20Token) {
       return {
         ...res.data.zora20Token,
-        priceChange24h: res.data.zora20Token.priceChange24h || "0.00"
+        priceChange24h: res.data.zora20Token.priceChange24h || 
+                         (res.data.zora20Token.marketCapDelta24h || "0.00")
       };
     }
     
