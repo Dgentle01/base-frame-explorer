@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Coins, ArrowUpDown, TrendingUp, Clock, Wallet, ArrowLeftRight, DollarSign, Home } from 'lucide-react';
+import { Plus, Coins, Home, TrendingUp, Clock, Wallet, ArrowLeftRight, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
