@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Edit, Coins } from 'lucide-react';
@@ -9,6 +8,7 @@ import { fetchCoinDetails } from '@/services/coinService';
 import CoinTradeDialog from '@/components/CoinTradeDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useWallet } from '@/context/WalletContext';
+import WalletInfo from '@/components/WalletInfo';
 
 export default function CoinDetailsPage() {
   const { address } = useParams<{ address: string }>();
@@ -63,7 +63,6 @@ export default function CoinDetailsPage() {
     );
   }
 
-  // Check if user is a creator - safely handle potential undefined values
   const isCreator = coin.creatorAddress && address 
     ? coin.creatorAddress.toLowerCase() === address.toLowerCase() 
     : false;
@@ -98,8 +97,10 @@ export default function CoinDetailsPage() {
           )}
         </div>
       </div>
+
+      <WalletInfo />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div className="md:col-span-1">
           <CoinDetailsCard 
             coin={coin}
