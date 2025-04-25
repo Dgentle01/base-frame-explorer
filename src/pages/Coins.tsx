@@ -18,6 +18,16 @@ import CoinTradeDialog from '@/components/CoinTradeDialog';
 import CoinDetailsCard from '@/components/CoinDetailsCard';
 import CoinSearch from '@/components/CoinSearch';
 
+const getPriceChange = (coin: any) => {
+  const changeValue = coin.priceChange24h || coin.marketCapDelta24h || '0.00';
+  
+  const numValue = typeof changeValue === 'string' 
+    ? parseFloat(changeValue) 
+    : changeValue;
+    
+  return Math.abs(numValue).toFixed(2);
+};
+
 export default function CoinsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isTradeDialogOpen, setIsTradeDialogOpen] = React.useState(false);

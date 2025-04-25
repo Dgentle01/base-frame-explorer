@@ -1,10 +1,10 @@
+
 import React, { useState } from 'react';
 import { useWallet } from '@/context/WalletContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Wallet, Menu, X, Coins } from 'lucide-react';
+import { Search, Wallet, Menu, X, Coins, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Image from 'next/image';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
@@ -55,7 +55,7 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
           <div className="flex items-center gap-2">
             <Link to="/">
               <Button variant="ghost" size="sm" className="gap-2">
-                <Image className="h-4 w-4" />
+                <ImageIcon className="h-4 w-4" />
                 <span className="hidden md:inline">NFTs</span>
               </Button>
             </Link>

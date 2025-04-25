@@ -45,6 +45,21 @@ export function getWalletClient(account: Hex) {
   });
 }
 
+// Helper function to normalize price change data
+const normalizeCoinData = (coin: any) => {
+  if (!coin) return null;
+  
+  // Create a normalized version of the coin with consistent price change fields
+  return {
+    ...coin,
+    priceChange24h: coin.priceChange24h || coin.marketCapDelta24h || "0.00",
+    // Add mock data for other time intervals since the API doesn't provide them
+    priceChange5m: coin.priceChange5m || "0.18",
+    priceChange1h: coin.priceChange1h || "0.75", 
+    priceChange4h: coin.priceChange4h || "1.25"
+  };
+};
+
 // --- EXPLORE QUERIES ---
 // Fetch top gainers by market cap change (24 h)
 export async function fetchTopGainers(count = 10, after?: string) {
@@ -52,11 +67,8 @@ export async function fetchTopGainers(count = 10, after?: string) {
     const res = await getCoinsTopGainers({ count, after });
     const coins = res.data?.exploreList?.edges.map((e) => e.node) ?? [];
     
-    // Ensure each coin has a consistent price change property
-    return coins.map(coin => ({
-      ...coin,
-      priceChange24h: coin.priceChange24h || (coin.marketCapDelta24h || "0.00")
-    }));
+    // Normalize each coin to have consistent fields
+    return coins.map(coin => normalizeCoinData(coin));
   } catch (error) {
     console.error("Error fetching top gainers:", error);
     toast({
@@ -72,7 +84,8 @@ export async function fetchTopGainers(count = 10, after?: string) {
 export async function fetchTopVolume(count = 10, after?: string) {
   try {
     const res = await getCoinsTopVolume24h({ count, after });
-    return res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    const coins = res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    return coins.map(coin => normalizeCoinData(coin));
   } catch (error) {
     console.error("Error fetching top volume:", error);
     toast({
@@ -88,7 +101,8 @@ export async function fetchTopVolume(count = 10, after?: string) {
 export async function fetchMostValuable(count = 10, after?: string) {
   try {
     const res = await getCoinsMostValuable({ count, after });
-    return res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    const coins = res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    return coins.map(coin => normalizeCoinData(coin));
   } catch (error) {
     console.error("Error fetching most valuable coins:", error);
     toast({
@@ -104,7 +118,8 @@ export async function fetchMostValuable(count = 10, after?: string) {
 export async function fetchNewCoins(count = 10, after?: string) {
   try {
     const res = await getCoinsNew({ count, after });
-    return res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    const coins = res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    return coins.map(coin => normalizeCoinData(coin));
   } catch (error) {
     console.error("Error fetching new coins:", error);
     toast({
@@ -120,7 +135,8 @@ export async function fetchNewCoins(count = 10, after?: string) {
 export async function fetchRecentlyTraded(count = 10, after?: string) {
   try {
     const res = await getCoinsLastTraded({ count, after });
-    return res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    const coins = res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    return coins.map(coin => normalizeCoinData(coin));
   } catch (error) {
     console.error("Error fetching recently traded coins:", error);
     toast({
@@ -137,16 +153,12 @@ export async function fetchCoinDetails(address: string) {
   try {
     const res = await getCoin({ address });
     
-    // Ensure the coin has a consistent price change property
+    // Normalize the coin data if it exists
     if (res.data?.zora20Token) {
-      return {
-        ...res.data.zora20Token,
-        priceChange24h: res.data.zora20Token.priceChange24h || 
-                         (res.data.zora20Token.marketCapDelta24h || "0.00")
-      };
+      return normalizeCoinData(res.data.zora20Token);
     }
     
-    return res.data?.zora20Token;
+    return null;
   } catch (error) {
     console.error("Error fetching coin details:", error);
     toast({

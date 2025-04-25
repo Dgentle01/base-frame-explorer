@@ -23,3 +23,5 @@ export function CoinSearch({ onSearch }: CoinSearchProps) {
     </div>
   );
 }
+
+export default CoinSearch;
