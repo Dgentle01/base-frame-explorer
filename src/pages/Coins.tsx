@@ -18,6 +18,7 @@ import { useWallet } from '@/context/WalletContext';
 import CoinTradeDialog from '@/components/CoinTradeDialog';
 import CoinDetailsCard from '@/components/CoinDetailsCard';
 import CoinSearch from '@/components/CoinSearch';
+import WalletInfo from '@/components/WalletInfo';
 
 const getPriceChange = (coin: any) => {
   const changeValue = coin.priceChange24h || coin.marketCapDelta24h || '0.00';
@@ -84,7 +85,15 @@ export default function CoinsPage() {
     <div className="container mx-auto p-6">
       <div className="flex flex-col gap-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Zora Coins</h1>
+          <div className="flex items-center gap-4">
+            <Link to="/">
+              <Button variant="ghost" size="sm">
+                <Home className="h-4 w-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-bold">Zora Coins</h1>
+          </div>
           <div className="flex gap-2">
             <Button onClick={() => setIsTradeDialogOpen(true)} className="gap-2" variant="outline">
               <ArrowLeftRight className="h-4 w-4" />
@@ -96,6 +105,8 @@ export default function CoinsPage() {
             </Button>
           </div>
         </div>
+
+        <WalletInfo />
 
         <div className="w-full max-w-md">
           <CoinSearch onSearch={setSearchQuery} />

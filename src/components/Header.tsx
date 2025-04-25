@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { useWallet } from '@/context/WalletContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Wallet, Menu, X, Coins, Image as ImageIcon } from 'lucide-react';
+import { Search, Wallet, Menu, X, Coins, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
@@ -82,6 +82,13 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
         </div>
 
         <div className="hidden md:flex items-center gap-4">
+          <ThemeToggle />
+          <Link to="/">
+            <Button variant="ghost" size="icon">
+              <Home className="h-4 w-4" />
+              <span className="sr-only">Home</span>
+            </Button>
+          </Link>
           {isConnected ? (
             <div className="flex items-center gap-4">
               <div className="px-4 py-2 rounded-full bg-muted">
@@ -118,6 +125,15 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
 
       {isMenuOpen && (
         <div className="md:hidden container mt-4 pb-4 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <ThemeToggle />
+            <Link to="/">
+              <Button variant="ghost" size="icon">
+                <Home className="h-4 w-4" />
+                <span className="sr-only">Home</span>
+              </Button>
+            </Link>
+          </div>
           <form onSubmit={handleSearchSubmit} className="relative">
             <Input
               type="search"
