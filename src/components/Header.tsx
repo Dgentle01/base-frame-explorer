@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Wallet, Menu, X, Coins } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Image from 'next/image';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
@@ -49,14 +50,22 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center">
             <div className="text-2xl font-bold text-primary mr-2">Base</div>
-            <div className="text-2xl font-bold">NFT Explorer</div>
+            <div className="text-2xl font-bold">Explorer</div>
           </Link>
-          <Link to="/coins">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Coins className="h-4 w-4" />
-              <span className="hidden md:inline">Coins</span>
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Image className="h-4 w-4" />
+                <span className="hidden md:inline">NFTs</span>
+              </Button>
+            </Link>
+            <Link to="/coins">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Coins className="h-4 w-4" />
+                <span className="hidden md:inline">Coins</span>
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="hidden md:block w-full max-w-md">

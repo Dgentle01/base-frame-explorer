@@ -29,10 +29,8 @@ interface CoinDetailsCardProps {
 export default function CoinDetailsCard({ coin, onTrade }: CoinDetailsCardProps) {
   const { explorerUrl } = useWallet();
   
-  // Format dates
   const formattedDate = coin.createdAt ? new Date(coin.createdAt).toLocaleDateString() : 'Unknown';
   
-  // Format numbers
   const formattedMarketCap = typeof coin.marketCap === 'bigint' 
     ? formatEther(coin.marketCap) 
     : (typeof coin.marketCap === 'string' ? coin.marketCap : '0');
@@ -45,24 +43,16 @@ export default function CoinDetailsCard({ coin, onTrade }: CoinDetailsCardProps)
     ? formatUnits(coin.totalSupply, 18)
     : (typeof coin.totalSupply === 'string' ? coin.totalSupply : '0');
   
-  // Format price change with a more robust approach
-  const getPriceChange = () => {
-    // First try to use priceChange24h
-    if (coin.priceChange24h && !isNaN(parseFloat(String(coin.priceChange24h)))) {
-      return parseFloat(String(coin.priceChange24h));
-    }
-    // Fall back to marketCapDelta24h if available
-    else if (coin.marketCapDelta24h && !isNaN(parseFloat(String(coin.marketCapDelta24h)))) {
-      return parseFloat(String(coin.marketCapDelta24h));
-    }
-    // Default to 0 if neither is available or valid
-    return 0;
+  const formatPriceChange = (value: string | number | undefined) => {
+    if (!value || isNaN(Number(value))) return 'N/A';
+    const numValue = parseFloat(String(value));
+    return `${numValue >= 0 ? '+' : ''}${numValue.toFixed(2)}%`;
   };
-  
-  const priceChange = getPriceChange();
-  const priceChangeColor = priceChange >= 0 ? 'text-green-500' : 'text-red-500';
-  const priceChangePrefix = priceChange >= 0 ? '+' : '';
-  const priceChangeValue = `${priceChangePrefix}${priceChange.toFixed(2)}%`;
+
+  const getPriceChangeColor = (value: string | number | undefined) => {
+    if (!value || isNaN(Number(value))) return 'text-muted-foreground';
+    return parseFloat(String(value)) >= 0 ? 'text-green-500' : 'text-red-500';
+  };
 
   return (
     <Card className="overflow-hidden">
@@ -126,14 +116,24 @@ export default function CoinDetailsCard({ coin, onTrade }: CoinDetailsCardProps)
         </div>
         
         <div className="mt-4 pt-3 border-t">
-          <div className="flex justify-between items-center">
+          <div className="grid grid-cols-3 gap-2">
             <div>
-              <p className="text-sm text-muted-foreground">24h Change</p>
-              <p className={`font-medium ${priceChangeColor}`}>{priceChangeValue}</p>
+              <p className="text-sm text-muted-foreground">5m</p>
+              <p className={getPriceChangeColor(coin.priceChange5m)}>
+                {formatPriceChange(coin.priceChange5m)}
+              </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Supply</p>
-              <p className="font-medium">{formattedSupply}</p>
+              <p className="text-sm text-muted-foreground">1h</p>
+              <p className={getPriceChangeColor(coin.priceChange1h)}>
+                {formatPriceChange(coin.priceChange1h)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">4h</p>
+              <p className={getPriceChangeColor(coin.priceChange4h)}>
+                {formatPriceChange(coin.priceChange4h)}
+              </p>
             </div>
           </div>
         </div>
