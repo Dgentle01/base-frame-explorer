@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,8 +19,6 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
         <WalletProvider>
           <BrowserRouter>
             <Routes>
@@ -29,6 +28,8 @@ const App = () => (
               <Route path="/api-credentials" element={<ApiCredentials />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Toaster />
+            <Sonner />
           </BrowserRouter>
         </WalletProvider>
       </TooltipProvider>
