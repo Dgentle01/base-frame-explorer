@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ interface CoinDetailsCardProps {
     name: string;
     symbol: string;
     description?: string;
-    image?: string;
+    imageUrl?: string;
     totalSupply?: string | bigint;
     marketCap?: string | bigint;
     volume24h?: string | bigint;
@@ -68,13 +69,17 @@ export default function CoinDetailsCard({ coin, onTrade }: CoinDetailsCardProps)
             </CardDescription>
           </div>
           
-          {coin.image && (
+          {coin.imageUrl ? (
             <div className="h-12 w-12 rounded-full overflow-hidden">
               <img 
-                src={coin.image} 
+                src={coin.imageUrl} 
                 alt={coin.name} 
                 className="h-full w-full object-cover"
               />
+            </div>
+          ) : (
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <DollarSign className="h-6 w-6 text-muted-foreground" />
             </div>
           )}
         </div>

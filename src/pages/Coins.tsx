@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Coins, ArrowUpDown, TrendingUp, Clock, Wallet, ArrowLeftRight } from 'lucide-react';
+import { Plus, Coins, ArrowUpDown, TrendingUp, Clock, Wallet, ArrowLeftRight, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +11,8 @@ import {
   fetchTopVolume, 
   fetchMostValuable, 
   fetchNewCoins,
-  fetchRecentlyTraded
+  fetchRecentlyTraded,
+  fetchTopLosers
 } from '@/services/coinService';
 import { useWallet } from '@/context/WalletContext';
 import CoinTradeDialog from '@/components/CoinTradeDialog';
@@ -58,6 +59,11 @@ export default function CoinsPage() {
   const { data: recentlyTraded, isLoading: loadingRecentlyTraded } = useQuery({
     queryKey: ['coins', 'recentlyTraded'],
     queryFn: () => fetchRecentlyTraded(5)
+  });
+
+  const { data: topLosers, isLoading: loadingLosers } = useQuery({
+    queryKey: ['coins', 'topLosers'],
+    queryFn: () => fetchTopLosers(5)
   });
 
   const handleTradeCoin = (coin: any) => {
@@ -133,11 +139,24 @@ export default function CoinsPage() {
                       <Link to={`/coins/${coin.address}`} key={coin.address}>
                         <Card className="hover:bg-muted/50 transition-colors">
                           <div className="p-4 flex justify-between items-center">
-                            <div>
-                              <p className="font-medium">{coin.name}</p>
-                              <p className="text-sm text-muted-foreground">${coin.symbol}</p>
+                            <div className="flex items-center gap-3">
+                              {coin.imageUrl ? (
+                                <img 
+                                  src={coin.imageUrl} 
+                                  alt={coin.name}
+                                  className="w-8 h-8 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium">{coin.name}</p>
+                                <p className="text-sm text-muted-foreground">${coin.symbol}</p>
+                              </div>
                             </div>
-                            <span className="text-green-500">+{getPriceChange(coin)}%</span>
+                            <span className="text-green-500">{getPriceChange(coin)}%</span>
                           </div>
                         </Card>
                       </Link>
@@ -147,8 +166,8 @@ export default function CoinsPage() {
               </div>
 
               <div>
-                <h2 className="text-xl font-semibold mb-4">Top Volume</h2>
-                {loadingVolume ? (
+                <h2 className="text-xl font-semibold mb-4">Top Losers</h2>
+                {loadingLosers ? (
                   <div className="space-y-2">
                     {[...Array(5)].map((_, i) => (
                       <div key={i} className="animate-pulse h-16 bg-muted rounded"></div>
@@ -156,15 +175,28 @@ export default function CoinsPage() {
                   </div>
                 ) : (
                   <div className="grid gap-4">
-                    {filterCoins(topVolume)?.map((coin) => (
+                    {filterCoins(topLosers)?.map((coin) => (
                       <Link to={`/coins/${coin.address}`} key={coin.address}>
                         <Card className="hover:bg-muted/50 transition-colors">
                           <div className="p-4 flex justify-between items-center">
-                            <div>
-                              <p className="font-medium">{coin.name}</p>
-                              <p className="text-sm text-muted-foreground">${coin.symbol}</p>
+                            <div className="flex items-center gap-3">
+                              {coin.imageUrl ? (
+                                <img 
+                                  src={coin.imageUrl} 
+                                  alt={coin.name}
+                                  className="w-8 h-8 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium">{coin.name}</p>
+                                <p className="text-sm text-muted-foreground">${coin.symbol}</p>
+                              </div>
                             </div>
-                            <span className="text-muted-foreground">{coin.volume24h || '0'} ETH</span>
+                            <span className="text-red-500">{getPriceChange(coin)}%</span>
                           </div>
                         </Card>
                       </Link>
@@ -172,6 +204,33 @@ export default function CoinsPage() {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Top Volume</h2>
+              {loadingVolume ? (
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="animate-pulse h-16 bg-muted rounded"></div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {filterCoins(topVolume)?.map((coin) => (
+                    <Link to={`/coins/${coin.address}`} key={coin.address}>
+                      <Card className="hover:bg-muted/50 transition-colors">
+                        <div className="p-4 flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{coin.name}</p>
+                            <p className="text-sm text-muted-foreground">${coin.symbol}</p>
+                          </div>
+                          <span className="text-muted-foreground">{coin.volume24h || '0'} ETH</span>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </TabsContent>
 

@@ -1,4 +1,3 @@
-
 import {
   getCoinsTopGainers,
   getCoinsTopVolume24h,
@@ -7,7 +6,6 @@ import {
   createCoin,
   tradeCoin,
   simulateBuy,
-  // Note: simulateSell is not exported directly from the SDK
   type CreateCoinArgs,
   type TradeParams,
   setApiKey,
@@ -49,14 +47,10 @@ export function getWalletClient(account: Hex) {
 const normalizeCoinData = (coin: any) => {
   if (!coin) return null;
   
-  // Create a normalized version of the coin with consistent price change fields
   return {
     ...coin,
     priceChange24h: coin.priceChange24h || coin.marketCapDelta24h || "0.00",
-    // Add mock data for other time intervals since the API doesn't provide them
-    priceChange5m: coin.priceChange5m || "0.18",
-    priceChange1h: coin.priceChange1h || "0.75", 
-    priceChange4h: coin.priceChange4h || "1.25"
+    imageUrl: coin.image || coin.metadata?.image || null
   };
 };
 
@@ -167,6 +161,37 @@ export async function fetchCoinDetails(address: string) {
       variant: "destructive",
     });
     return null;
+  }
+}
+
+// Fetch top losers by market cap change (24h)
+export async function fetchTopLosers(count = 10, after?: string) {
+  try {
+    const res = await getCoinsTopGainers({ count: count * 2, after }); // Fetch more to filter losers
+    const coins = res.data?.exploreList?.edges.map((e) => e.node) ?? [];
+    
+    // Filter and sort to get coins with negative price change
+    const losers = coins
+      .filter(coin => {
+        const change = parseFloat(coin.priceChange24h || coin.marketCapDelta24h || "0");
+        return change < 0;
+      })
+      .sort((a, b) => {
+        const changeA = parseFloat(a.priceChange24h || a.marketCapDelta24h || "0");
+        const changeB = parseFloat(b.priceChange24h || b.marketCapDelta24h || "0");
+        return changeA - changeB;
+      })
+      .slice(0, count);
+
+    return losers.map(coin => normalizeCoinData(coin));
+  } catch (error) {
+    console.error("Error fetching top losers:", error);
+    toast({
+      title: "Error fetching top losers",
+      description: "Could not load top losing coins. Please try again later.",
+      variant: "destructive",
+    });
+    return [];
   }
 }
 
