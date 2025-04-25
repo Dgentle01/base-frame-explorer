@@ -11,7 +11,7 @@ export default function WalletInfo() {
     return null;
   }
 
-  const formatAddress = (addr: string) => {
+  const formatAddress = (addr: string | null): string => {
     if (!addr) return '';
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
@@ -24,7 +24,7 @@ export default function WalletInfo() {
           <span className="text-sm text-muted-foreground">Connected Wallet</span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium">{formatAddress(address || '')}</span>
+          <span className="text-sm font-medium">{formatAddress(address)}</span>
           <div className="px-3 py-1 rounded-full bg-muted">
             <span className="text-sm font-medium">{balance}</span>
           </div>
