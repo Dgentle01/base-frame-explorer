@@ -19,8 +19,9 @@ import CoinTradeDialog from '@/components/CoinTradeDialog';
 import CoinDetailsCard from '@/components/CoinDetailsCard';
 import CoinSearch from '@/components/CoinSearch';
 import WalletInfo from '@/components/WalletInfo';
+import { Coin } from '@/types/coin';
 
-const getPriceChange = (coin: any) => {
+const getPriceChange = (coin: Coin) => {
   const changeValue = coin.priceChange24h || coin.marketCapDelta24h || '0.00';
   
   const numValue = typeof changeValue === 'string' 
@@ -33,7 +34,7 @@ const getPriceChange = (coin: any) => {
 export default function CoinsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isTradeDialogOpen, setIsTradeDialogOpen] = React.useState(false);
-  const [selectedCoin, setSelectedCoin] = useState<any>(null);
+  const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const { isConnected } = useWallet();
   
@@ -67,18 +68,18 @@ export default function CoinsPage() {
     queryFn: () => fetchTopLosers(5)
   });
 
-  const handleTradeCoin = (coin: any) => {
+  const handleTradeCoin = (coin: Coin) => {
     setSelectedCoin(coin);
     setIsTradeDialogOpen(true);
   };
   
-  const filterCoins = (coins: any[]) => {
-    if (!searchQuery) return coins;
+  const filterCoins = (coins: Coin[] | undefined): Coin[] => {
+    if (!coins || !searchQuery) return coins || [];
     const query = searchQuery.toLowerCase();
-    return coins?.filter(coin => 
+    return coins.filter(coin => 
       coin.name.toLowerCase().includes(query) || 
       coin.symbol.toLowerCase().includes(query)
-    ) || [];
+    );
   };
 
   return (

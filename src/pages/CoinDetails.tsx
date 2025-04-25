@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -9,13 +10,14 @@ import CoinTradeDialog from '@/components/CoinTradeDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useWallet } from '@/context/WalletContext';
 import WalletInfo from '@/components/WalletInfo';
+import { Coin } from '@/types/coin';
 
 export default function CoinDetailsPage() {
   const { address } = useParams<{ address: string }>();
   const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
   const { isConnected } = useWallet();
   
-  const { data: coin, isLoading, error } = useQuery({
+  const { data: coin, isLoading, error } = useQuery<Coin>({
     queryKey: ['coin', address],
     queryFn: () => fetchCoinDetails(address || ''),
     enabled: !!address

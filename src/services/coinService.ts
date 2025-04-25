@@ -24,6 +24,7 @@ import {
 } from "viem";
 import { base } from "viem/chains";
 import { toast } from "@/hooks/use-toast";
+import { Coin } from "@/types/coin";
 
 // Optional API key setup (best practice for production apps)
 // setApiKey("your-api-key-here");
@@ -44,8 +45,8 @@ export function getWalletClient(account: Hex) {
 }
 
 // Helper function to normalize price change data
-const normalizeCoinData = (coin: any) => {
-  if (!coin) return null;
+const normalizeCoinData = (coin: any): Coin => {
+  if (!coin) return {} as Coin;
   
   return {
     ...coin,

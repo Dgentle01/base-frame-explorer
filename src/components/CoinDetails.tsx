@@ -1,13 +1,14 @@
 
 import React, { useEffect, useState } from "react";
 import { fetchCoinDetails } from "../services/coinService";
+import { Coin } from "@/types/coin";
 
 interface CoinDetailsProps { 
   address: string;
 }
 
 export function CoinDetails({ address }: CoinDetailsProps) {
-  const [coin, setCoin] = useState<any>(null);
+  const [coin, setCoin] = useState<Coin | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 

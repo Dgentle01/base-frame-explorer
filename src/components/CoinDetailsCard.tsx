@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,24 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeftRight, Clock, DollarSign, ExternalLink, Users } from "lucide-react";
 import { formatEther, formatUnits } from 'viem';
 import { useWallet } from '@/context/WalletContext';
+import { Coin } from '@/types/coin';
 
 interface CoinDetailsCardProps {
-  coin: {
-    address: string;
-    name: string;
-    symbol: string;
-    description?: string;
-    imageUrl?: string;
-    totalSupply?: string | bigint;
-    marketCap?: string | bigint;
-    volume24h?: string | bigint;
-    priceChange24h?: string | number;
-    marketCapDelta24h?: string | number;
-    createdAt?: string;
-    creatorAddress?: string;
-    payoutRecipient?: string;
-    uniqueHolders?: number;
-  };
+  coin: Coin;
   onTrade: () => void;
 }
 
