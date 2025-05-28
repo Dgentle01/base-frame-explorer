@@ -1,11 +1,11 @@
-
 import React, { useState } from 'react';
 import { useWallet } from '@/context/WalletContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Wallet, Menu, X } from 'lucide-react';
 import { useNavigate } from "react-router-dom";  // Client‑side navigation hook :contentReference[oaicite:4]{index=4}
-
+import { Search, Wallet, Menu, X, Coins, Home, Image } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
@@ -13,7 +13,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
-  const { isConnected, address, balance, connectWallet, disconnectWallet, isConnecting } = useWallet();
+  const { isConnected, address, balance, connectWallet, isConnecting } = useWallet();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate(); // Client‑side navigation hook :contentReference[oaicite:4]{index=4}
@@ -31,7 +31,6 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  // Format address for display (0x1234...5678)
   const formatAddress = (address: string) => {
     if (!address) return '';
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
@@ -39,12 +38,10 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
 
   const handleWalletClick = () => {
     if (isConnected) {
-      // If wallet is connected, just open the modal
       if (onOpenWalletModal) {
         onOpenWalletModal();
       }
     } else {
-      // If wallet is not connected, connect it
       connectWallet();
     }
   };
@@ -52,9 +49,25 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border py-4">
       <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center">
-          <div className="text-2xl font-bold text-primary mr-2">Base</div>
-          <div className="text-2xl font-bold">NFT Explorer</div>
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center">
+            <div className="text-2xl font-bold text-primary mr-2">Base</div>
+            <div className="text-2xl font-bold">Explorer</div>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Image className="h-4 w-4" />
+                <span className="hidden md:inline">NFTs</span>
+              </Button>
+            </Link>
+            <Link to="/coins">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Coins className="h-4 w-4" />
+                <span className="hidden md:inline">Coins</span>
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="hidden md:block w-full max-w-md">
@@ -71,6 +84,13 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
         </div>
 
         <div className="hidden md:flex items-center gap-4">
+          <ThemeToggle />
+          <Link to="/">
+            <Button variant="ghost" size="icon">
+              <Home className="h-4 w-4" />
+              <span className="sr-only">Home</span>
+            </Button>
+          </Link>
           {isConnected ? (
             <div className="flex items-center gap-4">
               <div className="px-4 py-2 rounded-full bg-muted">
@@ -114,9 +134,17 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden container mt-4 pb-4 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <ThemeToggle />
+            <Link to="/">
+              <Button variant="ghost" size="icon">
+                <Home className="h-4 w-4" />
+                <span className="sr-only">Home</span>
+              </Button>
+            </Link>
+          </div>
           <form onSubmit={handleSearchSubmit} className="relative">
             <Input
               type="search"

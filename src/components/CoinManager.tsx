@@ -1,24 +1,21 @@
+
 import React, { useState, useEffect } from "react";
-// Wagmi hooks for wallet & RPC clients
-import { useAccount, usePublicClient, useWalletClient } from "wagmi"; // :contentReference[oaicite:3]{index=3}
-// Base chain config from viem
-import { base } from "viem/chains";                                       // :contentReference[oaicite:4]{index=4}
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { base } from "viem/chains";
 import {
-  // Explore queries
   getCoinsTopGainers,
   getCoinsTopVolume24h,
   getCoinsMostValuable,
   getCoinsNew,
-  // Create coin (on‑chain write)
   createCoin,
   type CreateCoinArgs,
-} from "@zoralabs/coins-sdk";                                            // :contentReference[oaicite:5]{index=5}
+} from "@zoralabs/coins-sdk";
 
 export default function CoinManager() {
   // 1️⃣ Wallet & RPC clients
-  const { address } = useAccount();                          // Connected wallet address :contentReference[oaicite:6]{index=6}
-  const publicClient = usePublicClient({ chainId: base.id }); // Read‑only RPC client on Base :contentReference[oaicite:7]{index=7}
-  const { data: walletClient } = useWalletClient();           // Signer client for writes :contentReference[oaicite:8]{index=8}
+  const { address } = useAccount();
+  const publicClient = usePublicClient({ chainId: base.id });
+  const { data: walletClient } = useWalletClient();
 
   // 2️⃣ UI state for category selection and coin list
   const [category, setCategory] = useState<string>("Top Gainers");
@@ -28,9 +25,10 @@ export default function CoinManager() {
   // 3️⃣ Form state for creating a new coin
   const [name, setName] = useState<string>("");
   const [symbol, setSymbol] = useState<string>("");
-  const [uri, setUri] = useState<string>("");                        // Metadata URI (IPFS recommended) :contentReference[oaicite:9]{index=9}
+  const [uri, setUri] = useState<string>("");
   const [payoutRecipient, setPayoutRecipient] = useState<string>("");
-  const [initialPurchaseWei, setInitialPurchaseWei] = useState<bigint>(0n);
+  // Fix for the BigInt type
+  const [initialPurchaseWei, setInitialPurchaseWei] = useState<bigint>(BigInt(0));
 
   // 4️⃣ Fetch coins whenever `category` changes
   useEffect(() => {
@@ -39,20 +37,20 @@ export default function CoinManager() {
     let fetcher: Promise<any[]>;
     switch (category) {
       case "Top Gainers":
-        fetcher = getCoinsTopGainers({ count: 10 })                  // :contentReference[oaicite:10]{index=10}
-          .then(r => r.data.exploreList.edges.map(e => e.node));
+        fetcher = getCoinsTopGainers({ count: 10 })
+          .then(r => r.data?.exploreList?.edges.map(e => e.node) || []);
         break;
       case "Top Volume":
-        fetcher = getCoinsTopVolume24h({ count: 10 })                // :contentReference[oaicite:11]{index=11}
-          .then(r => r.data.exploreList.edges.map(e => e.node));
+        fetcher = getCoinsTopVolume24h({ count: 10 })
+          .then(r => r.data?.exploreList?.edges.map(e => e.node) || []);
         break;
       case "Most Valuable":
-        fetcher = getCoinsMostValuable({ count: 10 })                // :contentReference[oaicite:12]{index=12}
-          .then(r => r.data.exploreList.edges.map(e => e.node));
+        fetcher = getCoinsMostValuable({ count: 10 })
+          .then(r => r.data?.exploreList?.edges.map(e => e.node) || []);
         break;
       case "New Coins":
-        fetcher = getCoinsNew({ count: 10 })                         // :contentReference[oaicite:13]{index=13}
-          .then(r => r.data.exploreList.edges.map(e => e.node));
+        fetcher = getCoinsNew({ count: 10 })
+          .then(r => r.data?.exploreList?.edges.map(e => e.node) || []);
         break;
       default:
         fetcher = Promise.resolve([]);
@@ -75,7 +73,7 @@ export default function CoinManager() {
       name,
       symbol,
       uri,
-      payoutRecipient: payoutRecipient as `0x${string}`,  // must be a valid Ethereum address :contentReference[oaicite:14]{index=14}
+      payoutRecipient: payoutRecipient as `0x${string}`,
       initialPurchaseWei,
     };
 
@@ -84,7 +82,7 @@ export default function CoinManager() {
         args,
         walletClient,
         publicClient
-      );                                                         // :contentReference[oaicite:15]{index=15}
+      );
       alert(`Deployed! TX Hash: ${hash}\nNew Coin Address: ${coinAddress}`);
     } catch (err) {
       console.error(err);
@@ -162,10 +160,18 @@ export default function CoinManager() {
           required
         />
         <input
-          type="number"
+          type="text"
           placeholder="Initial Purchase (Wei)"
           value={initialPurchaseWei.toString()}
-          onChange={e => setInitialPurchaseWei(BigInt(e.target.value))}
+          onChange={e => {
+            try {
+              // Safely parse the input to BigInt
+              const value = e.target.value.trim() === '' ? '0' : e.target.value;
+              setInitialPurchaseWei(BigInt(value));
+            } catch (err) {
+              console.error("Invalid BigInt value:", e.target.value);
+            }
+          }}
           className="w-full p-2 border rounded"
         />
         <button
@@ -178,4 +184,3 @@ export default function CoinManager() {
     </div>
   );
 }
-// :contentReference[oaicite:16]{index=16}
