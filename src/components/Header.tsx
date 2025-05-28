@@ -4,6 +4,8 @@ import { useWallet } from '@/context/WalletContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Wallet, Menu, X } from 'lucide-react';
+import { useNavigate } from "react-router-dom";  // Client‑side navigation hook :contentReference[oaicite:4]{index=4}
+
 
 interface HeaderProps {
   onSearch: (query: string) => void;
@@ -14,6 +16,7 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
   const { isConnected, address, balance, connectWallet, disconnectWallet, isConnecting } = useWallet();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate(); // Client‑side navigation hook :contentReference[oaicite:4]{index=4}
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -92,6 +95,15 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
               {isConnecting ? 'Connecting...' : 'Connect Wallet'}
             </Button>
           )}
+          {/* New Create Coin button */}
+          <Button
+            variant="ghost"
+            size='lg'
+            className="text-white border-white hover:bg-white/10"
+            onClick={() => navigate('/create-coin')} // Navigate to the Create Coin page
+          >
+            Create Coin
+          </Button>
         </div>
 
         <button 
@@ -140,6 +152,17 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onOpenWalletModal }) => {
               {isConnecting ? 'Connecting...' : 'Connect Wallet'}
             </Button>
           )}
+          <Button
+            variant="outline"
+            size='lg'
+            className="text-white border-white hover:bg-white/10 w-full"
+            onClick={() => {
+              navigate('/create-coin'); // Navigate to the Create Coin page
+              setIsMenuOpen(false);
+            }}
+          >
+            Create Coin
+          </Button>
         </div>
       )}
     </header>
